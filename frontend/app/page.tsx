@@ -5,9 +5,10 @@ import { MacroKpiGrid } from "@/components/macro/MacroKpiGrid";
 import { MacroSignalsPanel } from "@/components/macro/MacroSignalsPanel";
 import { MacroThemesPanel } from "@/components/macro/MacroThemesPanel";
 import { MacroTrendCharts } from "@/components/macro/MacroTrendCharts";
+import { ProviderStatusBar } from "@/components/macro/ProviderStatusBar";
 import { RegionSwitcher } from "@/components/macro/RegionSwitcher";
 import { YieldCurvePanel } from "@/components/macro/YieldCurvePanel";
-import { emptyMacroDashboard, mockMacroDashboard } from "@/lib/mocks/macro";
+import { getMacroDashboard } from "@/lib/live";
 import { formatDateTime } from "@/lib/format";
 import {
   isDashboardState,
@@ -38,7 +39,8 @@ export default async function DashboardPage({ searchParams }: Props) {
   const params = (await searchParams) ?? {};
   const state = resolveState(params.state);
   const region = resolveRegion(params.region);
-  const dashboard = state === "empty" ? emptyMacroDashboard : mockMacroDashboard;
+  const dashboard = await getMacroDashboard({ state });
+  const dashboardMode = dashboard.mode ?? "mock";
 
   const regionSnapshot =
     dashboard.regions.find((r) => r.region === region) ?? {
@@ -63,8 +65,9 @@ export default async function DashboardPage({ searchParams }: Props) {
           <div>
             <h1 className="macro-title">Makro Strateji Panosu</h1>
             <p className="macro-subtitle">
-              ABD ve Türkiye için makro göstergeler — tüm veriler mock,
-              henüz canlı entegrasyon yok.
+              ABD ve Türkiye için makro göstergeler — canlı sağlayıcılar
+              (FRED, FMP, Polygon, TCMB) bağlanabildiğinde değerler canlı
+              okunur, aksi halde mock değerlere geri düşer.
             </p>
           </div>
           <div className="macro-header-meta">
@@ -81,6 +84,11 @@ export default async function DashboardPage({ searchParams }: Props) {
           <RegionSwitcher current={region} state={state} />
           <StateSwitcher current={state} region={region} />
         </div>
+
+        <ProviderStatusBar
+          mode={dashboardMode}
+          providers={dashboard.providerStatus ?? []}
+        />
       </header>
 
       <section

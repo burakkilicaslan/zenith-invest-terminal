@@ -239,6 +239,114 @@ a.freshness-badge-source:hover {
   font-variant-numeric: tabular-nums;
 }
 
+.freshness-badge.is-mode-cached .freshness-badge-dot {
+  background: var(--warning);
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.18);
+}
+
+.freshness-badge.is-mode-mock .freshness-badge-dot {
+  background: var(--neutral);
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.18);
+}
+
+.freshness-badge-mode {
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.freshness-badge.is-mode-cached .freshness-badge-mode {
+  color: var(--warning);
+}
+
+.freshness-badge.is-mode-mock .freshness-badge-mode {
+  color: var(--neutral);
+}
+
+/* ---------- Provider status bar ---------- */
+
+.provider-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.provider-status-mode {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+}
+
+.provider-status-mode.tone-positive {
+  color: var(--positive);
+  border-color: rgba(52, 211, 153, 0.4);
+  background: rgba(52, 211, 153, 0.08);
+}
+
+.provider-status-mode.tone-warning {
+  color: var(--warning);
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(251, 191, 36, 0.08);
+}
+
+.provider-status-mode.tone-neutral {
+  color: var(--text-muted);
+}
+
+.provider-status-list {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.provider-status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.provider-status-chip-code {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.provider-status-chip-mode {
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+}
+
+.provider-status-chip.tone-positive .provider-status-chip-mode {
+  color: var(--positive);
+}
+
+.provider-status-chip.tone-warning .provider-status-chip-mode {
+  color: var(--warning);
+}
+
+.provider-status-chip.tone-neutral .provider-status-chip-mode {
+  color: var(--neutral);
+}
+
 /* ---------- KPI cards ---------- */
 
 .macro-kpi-grid {

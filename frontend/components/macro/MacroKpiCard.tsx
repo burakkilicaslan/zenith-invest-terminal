@@ -108,6 +108,8 @@ export function MacroKpiCard({ indicator }: Props) {
         source={indicator.source}
         updatedAt={indicator.updatedAt}
         compact
+        mode={indicator.provenance?.mode ?? "mock"}
+        fallbackReason={indicator.provenance?.fallbackReason ?? null}
       />
     </article>
   );
