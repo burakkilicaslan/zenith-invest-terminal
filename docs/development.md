@@ -17,3 +17,10 @@ Suggested scripts:
 - run format checks
 - run lint checks
 - run tests
+
+Deployment gate:
+- A deployment is not considered complete until it passes UAT review.
+- After every successful deployment, the UAT Reviewer / Tester must open the Vercel deployment URL in a browser.
+- The reviewer must verify visual alignment with the PRD, check core interactions, and confirm that data loads correctly.
+- If the deployed build fails any check, the reviewer must document the issue with clear reproduction steps and send it back for Devin to fix before the deployment is accepted.
+- Keep this gate mandatory for every future deployment.
