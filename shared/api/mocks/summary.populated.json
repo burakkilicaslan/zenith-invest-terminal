@@ -1,0 +1,26 @@
+{
+  "data": {
+    "dateRange": {
+      "start": "2026-04-01T00:00:00Z",
+      "end": "2026-04-19T00:00:00Z"
+    },
+    "totalPortfolioValue": 1254830.42,
+    "dailyChange": 4821.15,
+    "dailyChangePercent": 0.385,
+    "cashBalance": 128450.0,
+    "investedBalance": 1126380.42,
+    "allocationOverview": [
+      { "assetClass": "equity", "allocationPercent": 62.5 },
+      { "assetClass": "fixed_income", "allocationPercent": 18.0 },
+      { "assetClass": "cash", "allocationPercent": 10.2 },
+      { "assetClass": "crypto", "allocationPercent": 5.3 },
+      { "assetClass": "commodity", "allocationPercent": 2.5 },
+      { "assetClass": "alternative", "allocationPercent": 1.5 }
+    ]
+  },
+  "meta": {
+    "requestId": "req-summary-0001",
+    "generatedAt": "2026-04-19T20:00:00Z",
+    "source": "mock"
+  }
+}

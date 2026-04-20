@@ -1,0 +1,39 @@
+{
+  "data": [
+    {
+      "id": "act-001",
+      "timestamp": "2026-04-19T15:42:10Z",
+      "type": "trade",
+      "title": "Bought 50 MSFT",
+      "description": "Filled limit order at 437.90",
+      "relatedSymbol": "MSFT"
+    },
+    {
+      "id": "act-002",
+      "timestamp": "2026-04-18T13:10:00Z",
+      "type": "dividend",
+      "title": "AAPL dividend received",
+      "description": "Cash dividend credited to account",
+      "relatedSymbol": "AAPL"
+    },
+    {
+      "id": "act-003",
+      "timestamp": "2026-04-17T09:00:00Z",
+      "type": "deposit",
+      "title": "ACH deposit",
+      "description": "Cash deposit settled",
+      "relatedSymbol": null
+    }
+  ],
+  "meta": {
+    "requestId": "req-activity-0001",
+    "generatedAt": "2026-04-19T20:00:00Z",
+    "source": "mock",
+    "pagination": {
+      "page": 1,
+      "pageSize": 25,
+      "totalItems": 3,
+      "hasNextPage": false
+    }
+  }
+}

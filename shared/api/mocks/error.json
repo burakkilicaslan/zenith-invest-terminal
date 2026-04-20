@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "UPSTREAM_UNAVAILABLE",
+    "message": "Dashboard source is temporarily unavailable. Please retry in a moment.",
+    "details": {
+      "retryAfterSeconds": 30
+    }
+  },
+  "meta": {
+    "requestId": "req-error-0001",
+    "generatedAt": "2026-04-19T20:00:00Z"
+  }
+}

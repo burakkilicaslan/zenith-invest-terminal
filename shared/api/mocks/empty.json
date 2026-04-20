@@ -1,0 +1,14 @@
+{
+  "data": [],
+  "meta": {
+    "requestId": "req-empty-0001",
+    "generatedAt": "2026-04-19T20:00:00Z",
+    "source": "mock",
+    "pagination": {
+      "page": 1,
+      "pageSize": 25,
+      "totalItems": 0,
+      "hasNextPage": false
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "data": [
+    {
+      "symbol": "SPX",
+      "label": "S&P 500",
+      "currentValue": 5312.4,
+      "change": 18.22,
+      "changePercent": 0.344,
+      "trend": "up",
+      "updatedAt": "2026-04-19T20:00:00Z"
+    },
+    {
+      "symbol": "NDX",
+      "label": "Nasdaq 100",
+      "currentValue": 18562.1,
+      "change": -42.8,
+      "changePercent": -0.23,
+      "trend": "down",
+      "updatedAt": "2026-04-19T20:00:00Z"
+    },
+    {
+      "symbol": "US10Y",
+      "label": "US 10Y Treasury",
+      "currentValue": 4.28,
+      "change": 0.0,
+      "changePercent": 0.0,
+      "trend": "flat",
+      "updatedAt": "2026-04-19T20:00:00Z"
+    }
+  ],
+  "meta": {
+    "requestId": "req-market-0001",
+    "generatedAt": "2026-04-19T20:00:00Z",
+    "source": "mock"
+  }
+}
