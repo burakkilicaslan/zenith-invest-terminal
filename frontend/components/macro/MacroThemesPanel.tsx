@@ -30,8 +30,8 @@ export function MacroThemesPanel({
     <SectionStateView
       state={resolvedState}
       loadingRows={2}
-      emptyMessage="No macro themes yet for this region."
-      errorMessage="Couldn't load macro themes."
+      emptyMessage="Bu bölge için henüz makro tema tanımlanmadı."
+      errorMessage="Makro temalar yüklenemedi."
     >
       <div className="theme-list">
         {themes.map((theme) => (

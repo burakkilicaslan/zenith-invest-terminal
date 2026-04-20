@@ -8,7 +8,7 @@ interface Props {
 }
 
 const REGIONS: Array<{ id: MacroRegion; label: string; flag: string }> = [
-  { id: "us", label: "United States", flag: "🇺🇸" },
+  { id: "us", label: "ABD", flag: "🇺🇸" },
   { id: "tr", label: "Türkiye", flag: "🇹🇷" },
 ];
 
@@ -19,7 +19,7 @@ const REGIONS: Array<{ id: MacroRegion; label: string; flag: string }> = [
  */
 export function RegionSwitcher({ current, state }: Props) {
   return (
-    <nav aria-label="Macro region" className="region-switcher" role="tablist">
+    <nav aria-label="Makro bölge" className="region-switcher" role="tablist">
       {REGIONS.map((r) => {
         const isActive = r.id === current;
         const params = new URLSearchParams();

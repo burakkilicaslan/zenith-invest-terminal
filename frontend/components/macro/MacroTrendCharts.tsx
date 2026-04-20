@@ -25,8 +25,8 @@ export function MacroTrendCharts({ indicators, state = "populated" }: Props) {
     <SectionStateView
       state={resolvedState}
       loadingRows={3}
-      emptyMessage="No trend data for this region."
-      errorMessage="Couldn't load macro trend charts."
+      emptyMessage="Bu bölge için trend verisi yok."
+      errorMessage="Makro trend grafikleri yüklenemedi."
     >
       <div className="trend-grid">
         {indicators.map((indicator) => {
@@ -53,7 +53,7 @@ export function MacroTrendCharts({ indicators, state = "populated" }: Props) {
                 trend={indicator.trend}
                 width={260}
                 height={56}
-                ariaLabel={`${indicator.label} trend`}
+                ariaLabel={`${indicator.label} trend grafiği`}
               />
             </div>
           );

@@ -2,6 +2,7 @@ import type { DashboardState, YieldCurveSnapshot } from "@/lib/types";
 import { formatDateTime, formatSigned } from "@/lib/format";
 
 import { SectionStateView } from "../dashboard/SectionState";
+import { FreshnessBadge } from "./FreshnessBadge";
 
 interface Props {
   snapshot: YieldCurveSnapshot | null;
@@ -11,6 +12,12 @@ interface Props {
 const CHART_WIDTH = 360;
 const CHART_HEIGHT = 140;
 const CHART_PADDING = { top: 12, right: 12, bottom: 24, left: 36 };
+
+const SLOPE_LABEL: Record<YieldCurveSnapshot["slopeTrend"], string> = {
+  up: "pozitif eğim",
+  down: "tersine dönmüş",
+  flat: "düzleşmiş",
+};
 
 /**
  * Yield curve + 10Y/2Y spread visualization. Renders the full tenor
@@ -25,8 +32,8 @@ export function YieldCurvePanel({ snapshot, state = "populated" }: Props) {
     <SectionStateView
       state={resolvedState}
       loadingRows={4}
-      emptyMessage="No yield curve data."
-      errorMessage="Couldn't load the yield curve."
+      emptyMessage="Getiri eğrisi verisi yok."
+      errorMessage="Getiri eğrisi yüklenemedi."
     >
       {snapshot ? <YieldCurveBody snapshot={snapshot} /> : null}
     </SectionStateView>
@@ -56,28 +63,28 @@ function YieldCurveBody({ snapshot }: { snapshot: YieldCurveSnapshot }) {
     <div className="yield-curve-panel">
       <div className="yield-curve-summary">
         <div>
-          <div className="yield-curve-label">2Y</div>
+          <div className="yield-curve-label">2 Yıl</div>
           <div className="yield-curve-value">
-            {snapshot.twoYearYield.toFixed(2)}%
+            %{snapshot.twoYearYield.toFixed(2)}
           </div>
         </div>
         <div>
-          <div className="yield-curve-label">10Y</div>
+          <div className="yield-curve-label">10 Yıl</div>
           <div className="yield-curve-value">
-            {snapshot.tenYearYield.toFixed(2)}%
+            %{snapshot.tenYearYield.toFixed(2)}
           </div>
         </div>
         <div>
-          <div className="yield-curve-label">10Y–2Y</div>
+          <div className="yield-curve-label">10Y–2Y fark</div>
           <div className={`yield-curve-value ${spreadClass}`}>
-            {formatSigned(snapshot.spread, 2)}% ({formatSigned(spreadBps, 0)}{" "}
-            bps)
+            {formatSigned(snapshot.spread, 2)} pp ({formatSigned(spreadBps, 0)}{" "}
+            bp)
           </div>
         </div>
         <div>
-          <div className="yield-curve-label">Slope</div>
+          <div className="yield-curve-label">Eğim</div>
           <div className={`yield-curve-value ${slopeClass}`}>
-            {snapshot.slopeTrend}
+            {SLOPE_LABEL[snapshot.slopeTrend]}
           </div>
         </div>
       </div>
@@ -86,12 +93,23 @@ function YieldCurveBody({ snapshot }: { snapshot: YieldCurveSnapshot }) {
         <CurveChart tenors={tenors} />
       ) : (
         <p className="yield-curve-fallback">
-          Extended tenor data unavailable — showing 2Y/10Y summary only.
+          Tüm vadeler mevcut değil — yalnızca 2Y/10Y özeti gösteriliyor.
         </p>
       )}
 
-      <div className="yield-curve-updated">
-        Updated {formatDateTime(snapshot.updatedAt)}
+      {snapshot.interpretation ? (
+        <p className="yield-curve-interpretation">{snapshot.interpretation}</p>
+      ) : null}
+
+      <div className="yield-curve-footer">
+        <FreshnessBadge
+          source={snapshot.source}
+          updatedAt={snapshot.updatedAt}
+          compact
+        />
+        <span className="yield-curve-updated">
+          Güncelleme {formatDateTime(snapshot.updatedAt)}
+        </span>
       </div>
     </div>
   );
@@ -137,7 +155,7 @@ function CurveChart({
       height={height}
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label="Yield curve by tenor"
+      aria-label="Vadelere göre getiri eğrisi"
     >
       <rect
         x={left}
@@ -167,13 +185,8 @@ function CurveChart({
           </g>
         );
       })}
-      <text
-        x={4}
-        y={top + 10}
-        fontSize={10}
-        fill="var(--text-muted)"
-      >
-        {maxY.toFixed(2)}%
+      <text x={4} y={top + 10} fontSize={10} fill="var(--text-muted)">
+        %{maxY.toFixed(2)}
       </text>
       <text
         x={4}
@@ -181,7 +194,7 @@ function CurveChart({
         fontSize={10}
         fill="var(--text-muted)"
       >
-        {minY.toFixed(2)}%
+        %{minY.toFixed(2)}
       </text>
     </svg>
   );

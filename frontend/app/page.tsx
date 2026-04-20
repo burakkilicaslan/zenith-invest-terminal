@@ -1,5 +1,5 @@
 import { StateSwitcher } from "@/components/dashboard/StateSwitcher";
-import { FreshnessBadge } from "@/components/macro/FreshnessBadge";
+import { MacroAiSummaryPanel } from "@/components/macro/MacroAiSummaryPanel";
 import { MacroCalendarPanel } from "@/components/macro/MacroCalendarPanel";
 import { MacroKpiGrid } from "@/components/macro/MacroKpiGrid";
 import { MacroSignalsPanel } from "@/components/macro/MacroSignalsPanel";
@@ -8,6 +8,7 @@ import { MacroTrendCharts } from "@/components/macro/MacroTrendCharts";
 import { RegionSwitcher } from "@/components/macro/RegionSwitcher";
 import { YieldCurvePanel } from "@/components/macro/YieldCurvePanel";
 import { emptyMacroDashboard, mockMacroDashboard } from "@/lib/mocks/macro";
+import { formatDateTime } from "@/lib/format";
 import {
   isDashboardState,
   isMacroRegion,
@@ -30,7 +31,7 @@ function resolveRegion(raw: string | string[] | undefined): MacroRegion {
 }
 
 function regionLabel(region: MacroRegion): string {
-  return region === "us" ? "United States" : "Türkiye";
+  return region === "us" ? "ABD" : "Türkiye";
 }
 
 export default async function DashboardPage({ searchParams }: Props) {
@@ -60,15 +61,20 @@ export default async function DashboardPage({ searchParams }: Props) {
       <header className="macro-header">
         <div className="macro-header-top">
           <div>
-            <h1 className="macro-title">Macro Strategy Dashboard</h1>
+            <h1 className="macro-title">Makro Strateji Panosu</h1>
             <p className="macro-subtitle">
-              US &amp; Türkiye macro indicators — mock-driven, no live data yet.
+              ABD ve Türkiye için makro göstergeler — tüm veriler mock,
+              henüz canlı entegrasyon yok.
             </p>
           </div>
-          <FreshnessBadge
-            source={dashboard.source}
-            updatedAt={regionSnapshot.asOf}
-          />
+          <div className="macro-header-meta">
+            <span className="macro-header-source-pill" title="Veri kaynağı">
+              Kaynak: {dashboard.source}
+            </span>
+            <span className="macro-header-updated">
+              Üretilme {formatDateTime(dashboard.generatedAt)}
+            </span>
+          </div>
         </div>
 
         <div className="macro-header-controls">
@@ -77,21 +83,33 @@ export default async function DashboardPage({ searchParams }: Props) {
         </div>
       </header>
 
+      <section
+        className="card full-width"
+        aria-labelledby="ai-summary-heading"
+      >
+        <h2 id="ai-summary-heading">
+          Yatırıma uygun bir ortam mı? (AI özeti)
+        </h2>
+        <MacroAiSummaryPanel summary={dashboard.aiSummary} state={state} />
+      </section>
+
       <section className="card full-width" aria-labelledby="macro-kpi-heading">
         <h2 id="macro-kpi-heading">
-          {regionLabel(region)} macro indicators
+          {regionLabel(region)} makro göstergeleri
         </h2>
         <MacroKpiGrid indicators={regionSnapshot.indicators} state={state} />
       </section>
 
       <div className="dashboard-grid">
         <section className="card" aria-labelledby="yield-curve-heading">
-          <h2 id="yield-curve-heading">Yield curve &amp; 10Y–2Y spread</h2>
+          <h2 id="yield-curve-heading">
+            Getiri eğrisi ve 10Y–2Y farkı
+          </h2>
           <YieldCurvePanel snapshot={yieldCurve} state={state} />
         </section>
 
         <section className="card" aria-labelledby="signals-heading">
-          <h2 id="signals-heading">Macro signal summary</h2>
+          <h2 id="signals-heading">Makro sinyal özeti</h2>
           <MacroSignalsPanel
             signals={regionSignals}
             indicators={regionSnapshot.indicators}
@@ -103,7 +121,7 @@ export default async function DashboardPage({ searchParams }: Props) {
           className="card full-width"
           aria-labelledby="trend-charts-heading"
         >
-          <h2 id="trend-charts-heading">Macro trend charts</h2>
+          <h2 id="trend-charts-heading">Makro trend grafikleri</h2>
           <MacroTrendCharts
             indicators={regionSnapshot.indicators}
             state={state}
@@ -111,7 +129,7 @@ export default async function DashboardPage({ searchParams }: Props) {
         </section>
 
         <section className="card" aria-labelledby="themes-heading">
-          <h2 id="themes-heading">Macro themes &amp; watchlists</h2>
+          <h2 id="themes-heading">Makro temalar ve izleme listeleri</h2>
           <MacroThemesPanel
             themes={regionThemes}
             indicators={regionSnapshot.indicators}
@@ -120,11 +138,10 @@ export default async function DashboardPage({ searchParams }: Props) {
         </section>
 
         <section className="card" aria-labelledby="calendar-heading">
-          <h2 id="calendar-heading">Macro calendar</h2>
+          <h2 id="calendar-heading">Makro takvim</h2>
           <MacroCalendarPanel events={regionCalendar} state={state} />
         </section>
       </div>
-
     </main>
   );
 }
