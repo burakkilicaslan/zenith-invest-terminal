@@ -103,3 +103,12 @@ export interface MacroDashboard {
 }
 
 export type DashboardState = "loading" | "empty" | "populated" | "error";
+
+export function isDashboardState(value: unknown): value is DashboardState {
+  return (
+    value === "loading" ||
+    value === "empty" ||
+    value === "populated" ||
+    value === "error"
+  );
+}

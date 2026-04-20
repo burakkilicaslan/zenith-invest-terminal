@@ -1,11 +1,49 @@
-import type { DashboardSummary } from "@/lib/types";
+import type { DashboardState, DashboardSummary } from "@/lib/types";
 import { formatCurrency, formatDate, formatPercent } from "@/lib/format";
 
+import { EmptyState, ErrorState, LoadingState } from "./SectionState";
+
 interface Props {
-  summary: DashboardSummary;
+  summary: DashboardSummary | null;
+  state?: DashboardState;
 }
 
-export function SummaryStrip({ summary }: Props) {
+export function SummaryStrip({ summary, state = "populated" }: Props) {
+  if (state === "loading") {
+    return (
+      <>
+        <div className="card summary-metric">
+          <LoadingState rows={2} label="Loading summary…" />
+        </div>
+        <div className="card summary-metric">
+          <LoadingState rows={2} label="Loading summary…" />
+        </div>
+        <div className="card summary-metric">
+          <LoadingState rows={2} label="Loading summary…" />
+        </div>
+        <div className="card summary-metric">
+          <LoadingState rows={2} label="Loading summary…" />
+        </div>
+      </>
+    );
+  }
+
+  if (state === "error") {
+    return (
+      <div className="card summary-metric full-width">
+        <ErrorState message="Couldn't load portfolio summary." />
+      </div>
+    );
+  }
+
+  if (state === "empty" || !summary) {
+    return (
+      <div className="card summary-metric full-width">
+        <EmptyState message="No summary available for this period." />
+      </div>
+    );
+  }
+
   const changeClass =
     summary.dailyChange > 0
       ? "positive"

@@ -1,6 +1,29 @@
 import type { MacroDashboard } from "../types";
 
 /**
+ * Empty-state fixture: every collection is empty and the summary is
+ * nullable at the page level. Used to preview the empty UI state.
+ */
+export const emptyDashboard: MacroDashboard = {
+  summary: {
+    dateRange: {
+      start: "2026-04-01T00:00:00Z",
+      end: "2026-04-19T00:00:00Z",
+    },
+    totalPortfolioValue: 0,
+    dailyChange: 0,
+    dailyChangePercent: 0,
+    cashBalance: 0,
+    investedBalance: 0,
+    allocationOverview: [],
+  },
+  positions: [],
+  marketSnapshot: [],
+  insights: [],
+  activity: [],
+};
+
+/**
  * Deterministic mock Macro Dashboard payload used by the UI skeleton.
  * Mirrors the shape documented in Epic 1.1 so components can be built
  * and reviewed without a live backend.
