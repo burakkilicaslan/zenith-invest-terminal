@@ -3,14 +3,17 @@
 Python mirror of ``shared/api/contracts.ts``. The FastAPI backend owns
 request validation and must respond with these envelope shapes.
 
-Mock-first: handlers may return fixtures until real data sources exist.
-Domain object shapes are imported from ``shared.schemas.dashboard``.
+The models are Pydantic v2 ``BaseModel`` subclasses so FastAPI can use
+them directly for request/response validation and OpenAPI generation.
+Handlers may return fixtures until real data sources exist; domain
+object shapes are imported from ``shared.schemas.dashboard`` (Epic 1.1).
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Any, Dict, Generic, List, Literal, Optional, TypeVar
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from shared.schemas.dashboard import (
     ActivityItem,
@@ -32,82 +35,89 @@ class DashboardEndpoints:
     ACTIVITY = "/api/dashboard/activity"
 
 
-@dataclass(frozen=True)
-class ApiMeta:
+class ContractModel(BaseModel):
+    """Base model for API envelope contracts.
+
+    * ``extra="forbid"`` keeps envelopes tight so extra fields don't
+      silently creep into responses.
+    * ``populate_by_name=True`` leaves room to accept snake_case inputs
+      alongside the canonical camelCase on the wire without renaming
+      fields.
+    """
+
+    model_config = ConfigDict(
+        extra="forbid",
+        populate_by_name=True,
+    )
+
+
+class ApiMeta(ContractModel):
     requestId: str
     generatedAt: str
     source: Literal["mock", "live"]
 
 
-@dataclass(frozen=True)
-class PaginationMeta:
+class PaginationMeta(ContractModel):
     page: int
     pageSize: int
     totalItems: int
     hasNextPage: bool
 
 
+class ListApiMeta(ApiMeta):
+    """Meta block used by list endpoints — adds a ``pagination`` block."""
+
+    pagination: PaginationMeta
+
+
 TData = TypeVar("TData")
 
 
-@dataclass(frozen=True)
-class ApiSuccess(Generic[TData]):
+class ApiSuccess(ContractModel, Generic[TData]):
+    """Generic success envelope. Parameterize with the payload type."""
+
     data: TData
     meta: ApiMeta
 
 
-@dataclass(frozen=True)
-class ApiErrorBody:
+class ApiErrorBody(ContractModel):
     code: str
     message: str
     details: Optional[Dict[str, Any]] = None
 
 
-@dataclass(frozen=True)
-class ApiErrorMeta:
+class ApiErrorMeta(ContractModel):
     requestId: str
     generatedAt: str
 
 
-@dataclass(frozen=True)
-class ApiError:
+class ApiError(ContractModel):
     error: ApiErrorBody
     meta: ApiErrorMeta
 
 
-@dataclass(frozen=True)
-class ListApiMeta(ApiMeta):
-    pagination: PaginationMeta
-
-
-@dataclass(frozen=True)
 class DashboardSummaryResponse(ApiSuccess[DashboardSummary]):
     pass
 
 
-@dataclass(frozen=True)
-class PositionsResponse:
-    data: List[AssetPosition]
+class PositionsResponse(ContractModel):
+    data: List[AssetPosition] = Field(default_factory=list)
     meta: ListApiMeta
 
 
-@dataclass(frozen=True)
 class MarketSnapshotResponse(ApiSuccess[List[MarketSnapshot]]):
     pass
 
 
-@dataclass(frozen=True)
-class InsightsResponse:
-    data: List[InsightCard]
+class InsightsResponse(ContractModel):
+    data: List[InsightCard] = Field(default_factory=list)
     meta: ListApiMeta
 
 
-@dataclass(frozen=True)
-class ActivityResponse:
-    data: List[ActivityItem]
+class ActivityResponse(ContractModel):
+    data: List[ActivityItem] = Field(default_factory=list)
     meta: ListApiMeta
 
 
-@dataclass(frozen=True)
 class DashboardAggregateResponse(ApiSuccess[MacroDashboard]):
     pass
