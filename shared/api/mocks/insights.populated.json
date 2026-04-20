@@ -1,0 +1,33 @@
+{
+  "data": [
+    {
+      "id": "insight-001",
+      "title": "Equity exposure above target band",
+      "summary": "Equity allocation is 62.5% versus a 55% target. Consider trimming into strength.",
+      "severity": "watch",
+      "category": "portfolio",
+      "confidence": 0.72,
+      "source": "internal-rebalance-engine"
+    },
+    {
+      "id": "insight-002",
+      "title": "Fixed income drawdown",
+      "summary": "AGG position is -2.65% vs cost basis after rate repricing.",
+      "severity": "info",
+      "category": "market",
+      "confidence": 0.65,
+      "source": null
+    }
+  ],
+  "meta": {
+    "requestId": "req-insights-0001",
+    "generatedAt": "2026-04-19T20:00:00Z",
+    "source": "mock",
+    "pagination": {
+      "page": 1,
+      "pageSize": 25,
+      "totalItems": 2,
+      "hasNextPage": false
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "data": [
+    {
+      "symbol": "AAPL",
+      "name": "Apple Inc.",
+      "assetClass": "equity",
+      "quantity": 250,
+      "marketPrice": 212.34,
+      "marketValue": 53085.0,
+      "costBasis": 41500.0,
+      "unrealizedPnL": 11585.0,
+      "unrealizedPnLPercent": 27.92,
+      "allocationPercent": 4.23
+    },
+    {
+      "symbol": "MSFT",
+      "name": "Microsoft Corporation",
+      "assetClass": "equity",
+      "quantity": 180,
+      "marketPrice": 438.12,
+      "marketValue": 78861.6,
+      "costBasis": 65200.0,
+      "unrealizedPnL": 13661.6,
+      "unrealizedPnLPercent": 20.95,
+      "allocationPercent": 6.28
+    },
+    {
+      "symbol": "AGG",
+      "name": "iShares Core U.S. Aggregate Bond ETF",
+      "assetClass": "fixed_income",
+      "quantity": 1500,
+      "marketPrice": 98.65,
+      "marketValue": 147975.0,
+      "costBasis": 152000.0,
+      "unrealizedPnL": -4025.0,
+      "unrealizedPnLPercent": -2.65,
+      "allocationPercent": 11.79
+    },
+    {
+      "symbol": "BTC",
+      "name": "Bitcoin",
+      "assetClass": "crypto",
+      "quantity": 0.85,
+      "marketPrice": 78250.0,
+      "marketValue": 66512.5,
+      "costBasis": 52000.0,
+      "unrealizedPnL": 14512.5,
+      "unrealizedPnLPercent": 27.91,
+      "allocationPercent": 5.3
+    }
+  ],
+  "meta": {
+    "requestId": "req-positions-0001",
+    "generatedAt": "2026-04-19T20:00:00Z",
+    "source": "mock",
+    "pagination": {
+      "page": 1,
+      "pageSize": 25,
+      "totalItems": 4,
+      "hasNextPage": false
+    }
+  }
+}
