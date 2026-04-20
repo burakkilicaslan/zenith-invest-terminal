@@ -1,0 +1,177 @@
+import type { MacroDashboard } from "../types";
+
+/**
+ * Empty-state fixture: every collection is empty and the summary is
+ * nullable at the page level. Used to preview the empty UI state.
+ */
+export const emptyDashboard: MacroDashboard = {
+  summary: {
+    dateRange: {
+      start: "2026-04-01T00:00:00Z",
+      end: "2026-04-19T00:00:00Z",
+    },
+    totalPortfolioValue: 0,
+    dailyChange: 0,
+    dailyChangePercent: 0,
+    cashBalance: 0,
+    investedBalance: 0,
+    allocationOverview: [],
+  },
+  positions: [],
+  marketSnapshot: [],
+  insights: [],
+  activity: [],
+};
+
+/**
+ * Deterministic mock Macro Dashboard payload used by the UI skeleton.
+ * Mirrors the shape documented in Epic 1.1 so components can be built
+ * and reviewed without a live backend.
+ */
+export const mockDashboard: MacroDashboard = {
+  summary: {
+    dateRange: {
+      start: "2026-04-01T00:00:00Z",
+      end: "2026-04-19T00:00:00Z",
+    },
+    totalPortfolioValue: 1254830.42,
+    dailyChange: 4821.15,
+    dailyChangePercent: 0.385,
+    cashBalance: 128450.0,
+    investedBalance: 1126380.42,
+    allocationOverview: [
+      { assetClass: "equity", allocationPercent: 62.5 },
+      { assetClass: "fixed_income", allocationPercent: 18.0 },
+      { assetClass: "cash", allocationPercent: 10.2 },
+      { assetClass: "crypto", allocationPercent: 5.3 },
+      { assetClass: "commodity", allocationPercent: 2.5 },
+      { assetClass: "alternative", allocationPercent: 1.5 },
+    ],
+  },
+  positions: [
+    {
+      symbol: "AAPL",
+      name: "Apple Inc.",
+      assetClass: "equity",
+      quantity: 250,
+      marketPrice: 212.34,
+      marketValue: 53085.0,
+      costBasis: 41500.0,
+      unrealizedPnL: 11585.0,
+      unrealizedPnLPercent: 27.92,
+      allocationPercent: 4.23,
+    },
+    {
+      symbol: "MSFT",
+      name: "Microsoft Corporation",
+      assetClass: "equity",
+      quantity: 180,
+      marketPrice: 438.12,
+      marketValue: 78861.6,
+      costBasis: 65200.0,
+      unrealizedPnL: 13661.6,
+      unrealizedPnLPercent: 20.95,
+      allocationPercent: 6.28,
+    },
+    {
+      symbol: "AGG",
+      name: "iShares Core U.S. Aggregate Bond ETF",
+      assetClass: "fixed_income",
+      quantity: 1500,
+      marketPrice: 98.65,
+      marketValue: 147975.0,
+      costBasis: 152000.0,
+      unrealizedPnL: -4025.0,
+      unrealizedPnLPercent: -2.65,
+      allocationPercent: 11.79,
+    },
+    {
+      symbol: "BTC",
+      name: "Bitcoin",
+      assetClass: "crypto",
+      quantity: 0.85,
+      marketPrice: 78250.0,
+      marketValue: 66512.5,
+      costBasis: 52000.0,
+      unrealizedPnL: 14512.5,
+      unrealizedPnLPercent: 27.91,
+      allocationPercent: 5.3,
+    },
+  ],
+  marketSnapshot: [
+    {
+      symbol: "SPX",
+      label: "S&P 500",
+      currentValue: 5312.4,
+      change: 18.22,
+      changePercent: 0.344,
+      trend: "up",
+      updatedAt: "2026-04-19T20:00:00Z",
+    },
+    {
+      symbol: "NDX",
+      label: "Nasdaq 100",
+      currentValue: 18562.1,
+      change: -42.8,
+      changePercent: -0.23,
+      trend: "down",
+      updatedAt: "2026-04-19T20:00:00Z",
+    },
+    {
+      symbol: "US10Y",
+      label: "US 10Y Treasury",
+      currentValue: 4.28,
+      change: 0.0,
+      changePercent: 0.0,
+      trend: "flat",
+      updatedAt: "2026-04-19T20:00:00Z",
+    },
+  ],
+  insights: [
+    {
+      id: "insight-001",
+      title: "Equity exposure above target band",
+      summary:
+        "Equity allocation is 62.5% versus a 55% target. Consider trimming into strength.",
+      severity: "watch",
+      category: "portfolio",
+      confidence: 0.72,
+      source: "internal-rebalance-engine",
+    },
+    {
+      id: "insight-002",
+      title: "Fixed income drawdown",
+      summary: "AGG position is -2.65% vs cost basis after rate repricing.",
+      severity: "info",
+      category: "market",
+      confidence: 0.65,
+      source: null,
+    },
+  ],
+  activity: [
+    {
+      id: "act-001",
+      timestamp: "2026-04-19T15:42:10Z",
+      type: "trade",
+      title: "Bought 50 MSFT",
+      description: "Filled limit order at 437.90",
+      relatedSymbol: "MSFT",
+    },
+    {
+      id: "act-002",
+      timestamp: "2026-04-18T13:10:00Z",
+      type: "dividend",
+      title: "AAPL dividend received",
+      description: "Cash dividend credited to account",
+      relatedSymbol: "AAPL",
+    },
+    {
+      id: "act-003",
+      timestamp: "2026-04-17T09:00:00Z",
+      type: "deposit",
+      title: "ACH deposit",
+      description: "Cash deposit settled",
+      relatedSymbol: null,
+    },
+  ],
+};

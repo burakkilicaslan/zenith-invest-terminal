@@ -1,0 +1,243 @@
+:root {
+  --bg: #0b0f14;
+  --bg-elevated: #121821;
+  --border: #1f2a37;
+  --text: #e5e7eb;
+  --text-muted: #9ca3af;
+  --accent: #22d3ee;
+  --positive: #34d399;
+  --negative: #f87171;
+  --neutral: #9ca3af;
+  --radius: 10px;
+  --gap: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+    Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.app-shell {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 960px) {
+  .dashboard-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+  .dashboard-grid .full-width {
+    grid-column: 1 / -1;
+  }
+}
+
+.card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary-strip {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.summary-metric .label {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary-metric .value {
+  font-size: 24px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.positive {
+  color: var(--positive);
+}
+
+.negative {
+  color: var(--negative);
+}
+
+.neutral {
+  color: var(--neutral);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  font-variant-numeric: tabular-nums;
+}
+
+th {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+td.num,
+th.num {
+  text-align: right;
+}
+
+.insight-list,
+.activity-list,
+.market-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.insight-item,
+.activity-item,
+.market-item {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.insight-item .title,
+.activity-item .title {
+  font-weight: 600;
+}
+
+.insight-item .meta,
+.activity-item .meta,
+.market-item .meta {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.state-empty,
+.state-loading,
+.state-error {
+  color: var(--text-muted);
+  padding: 12px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+
+.state-error {
+  color: var(--negative);
+  border-color: var(--negative);
+}
+
+.state-error-retry {
+  margin-top: 8px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid var(--negative);
+  border-radius: 6px;
+  color: var(--negative);
+  cursor: pointer;
+  font: inherit;
+}
+
+.skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-row {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    var(--border) 0%,
+    #2a3647 50%,
+    var(--border) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.state-switcher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.state-switcher-link {
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border: 1px solid var(--border);
+}
+
+.state-switcher-link.is-active {
+  background: var(--bg-elevated);
+  color: var(--accent);
+  border-color: var(--accent);
+}
