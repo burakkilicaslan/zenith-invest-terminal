@@ -1,4 +1,6 @@
 import type {
+  DataSource,
+  MacroAiSummary,
   MacroCalendarItem,
   MacroDashboard,
   MacroIndicator,
@@ -12,9 +14,18 @@ import type {
 /**
  * Deterministic mock Macro Dashboard payload.
  *
- * Drives the full Epic 1 macro strategy dashboard (US + Turkey) without
+ * Drives the full Epic 1 macro strategy dashboard (US + Türkiye) without
  * any live data integration. Values are realistic enough to make the UI
  * meaningful but should not be used for analysis.
+ *
+ * Issue #18 enrichment:
+ * - Every indicator carries structured source metadata plus Turkish
+ *   "nedir" / "nasıl yorumlanır" copy.
+ * - US sentiment indicators (CNN Fear & Greed, investors.com CAN SLIM
+ *   % exposure) are first-class entries.
+ * - Signals / themes / calendar are fully localized to Turkish.
+ * - A top-level `aiSummary` synthesizes an investability verdict over
+ *   the full indicator set (mock, rule-based narrative).
  */
 
 function buildHistory(
@@ -34,11 +45,80 @@ function buildHistory(
 
 const GENERATED_AT = "2026-04-19T20:00:00Z";
 
+// ---------- Data sources ----------
+
+const SRC_FRED: DataSource = {
+  code: "FRED",
+  label: "Federal Reserve Economic Data",
+  url: "https://fred.stlouisfed.org",
+};
+
+const SRC_FMP: DataSource = {
+  code: "FMP",
+  label: "Financial Modeling Prep",
+  url: "https://financialmodelingprep.com",
+};
+
+const SRC_CBOE: DataSource = {
+  code: "CBOE",
+  label: "Chicago Board Options Exchange",
+  url: "https://www.cboe.com/tradable_products/vix/",
+};
+
+const SRC_CNN: DataSource = {
+  code: "CNN",
+  label: "CNN Business Fear & Greed Index",
+  url: "https://edition.cnn.com/markets/fear-and-greed",
+};
+
+const SRC_INVESTORS: DataSource = {
+  code: "investors.com",
+  label: "Investor's Business Daily — Big Picture",
+  url: "https://www.investors.com/market-trend/the-big-picture/",
+};
+
+const SRC_BLS: DataSource = {
+  code: "BLS",
+  label: "ABD Çalışma İstatistikleri Bürosu",
+  url: "https://www.bls.gov",
+};
+
+const SRC_FED: DataSource = {
+  code: "Federal Reserve",
+  label: "ABD Merkez Bankası (Federal Reserve)",
+  url: "https://www.federalreserve.gov",
+};
+
+const SRC_TCMB: DataSource = {
+  code: "TCMB",
+  label: "Türkiye Cumhuriyet Merkez Bankası",
+  url: "https://www.tcmb.gov.tr",
+};
+
+const SRC_TURKSTAT: DataSource = {
+  code: "TÜİK",
+  label: "Türkiye İstatistik Kurumu",
+  url: "https://www.tuik.gov.tr",
+};
+
+const SRC_IHS: DataSource = {
+  code: "IHS Markit",
+  label: "S&P Global Market Intelligence — CDS (mock)",
+  url: null,
+};
+
+const SRC_INTERNAL: DataSource = {
+  code: "Dahili model",
+  label: "Zenith dahili makro sinyal modeli (mock)",
+  url: null,
+};
+
 // ---------- US indicators ----------
 
 const us10y: MacroIndicator = {
   id: "us-10y",
-  label: "US 10Y Treasury Yield",
+  label: "ABD 10Y Hazine Tahvil Faizi",
+  labelEn: "US 10Y Treasury Yield",
   region: "us",
   category: "rates",
   value: 4.28,
@@ -47,17 +127,21 @@ const us10y: MacroIndicator = {
   changePercent: -0.7,
   trend: "down",
   updatedAt: GENERATED_AT,
-  source: "FRED",
+  source: SRC_FRED,
   history: buildHistory("2026-01-10T00:00:00Z", [
     4.02, 4.11, 4.18, 4.25, 4.33, 4.4, 4.46, 4.42, 4.38, 4.35, 4.32, 4.3, 4.29,
     4.28,
   ]),
-  description: "Benchmark long-end US Treasury yield.",
+  whatItIs:
+    "ABD Hazinesi'nin ihraç ettiği 10 yıl vadeli tahvilin yıllık getirisidir. Uzun vadeli risksiz getiri için küresel referans kabul edilir.",
+  howToInterpret:
+    "Yükselen faizler borçlanma maliyetini artırıp riskli varlıkları baskılar, düşen faizler ise genelde hisse ve tahvil değerlemelerine destek olur. Enflasyon ve büyüme beklentilerini birlikte okuyun.",
 };
 
 const us2y: MacroIndicator = {
   id: "us-2y",
-  label: "US 2Y Treasury Yield",
+  label: "ABD 2Y Hazine Tahvil Faizi",
+  labelEn: "US 2Y Treasury Yield",
   region: "us",
   category: "rates",
   value: 4.42,
@@ -66,17 +150,21 @@ const us2y: MacroIndicator = {
   changePercent: -0.45,
   trend: "down",
   updatedAt: GENERATED_AT,
-  source: "FRED",
+  source: SRC_FRED,
   history: buildHistory("2026-01-10T00:00:00Z", [
     4.55, 4.6, 4.58, 4.55, 4.52, 4.5, 4.48, 4.47, 4.46, 4.45, 4.44, 4.43, 4.42,
     4.42,
   ]),
-  description: "Policy-sensitive front-end US yield.",
+  whatItIs:
+    "Kısa vadeli ABD Hazine tahvili faizi. Fed'in politika faizi beklentilerine karşı en duyarlı enstrüman olarak izlenir.",
+  howToInterpret:
+    "Düşüş trendi piyasanın faiz indirimini fiyatladığına, yükseliş ise şahin duruşun güçlendiğine işaret eder. 10Y ile birlikte getiri eğrisini belirler.",
 };
 
 const us10y2ySpread: MacroIndicator = {
   id: "us-10y-2y",
   label: "10Y–2Y Spread",
+  labelEn: "US 10Y–2Y Spread",
   region: "us",
   category: "curve",
   value: -0.14,
@@ -85,17 +173,21 @@ const us10y2ySpread: MacroIndicator = {
   changePercent: 7.69,
   trend: "down",
   updatedAt: GENERATED_AT,
-  source: "FRED",
+  source: SRC_FRED,
   history: buildHistory("2026-01-10T00:00:00Z", [
     -0.53, -0.49, -0.4, -0.3, -0.19, -0.1, -0.02, -0.05, -0.08, -0.1, -0.12,
     -0.13, -0.13, -0.14,
   ]),
-  description: "Curve slope. Negative = inverted.",
+  whatItIs:
+    "ABD 10 yıllık ile 2 yıllık Hazine tahvili faizi arasındaki fark; getiri eğrisinin eğimini özetler.",
+  howToInterpret:
+    "Negatif değer (eğri tersine dönmüş) tarihsel olarak resesyon öncü göstergesidir. Pozitife dönüş ise büyüme beklentilerinin toparlandığına işaret eder.",
 };
 
 const vix: MacroIndicator = {
   id: "us-vix",
-  label: "VIX (Volatility Index)",
+  label: "VIX (Oynaklık Endeksi)",
+  labelEn: "VIX (Volatility Index)",
   region: "us",
   category: "volatility",
   value: 17.42,
@@ -104,17 +196,21 @@ const vix: MacroIndicator = {
   changePercent: 5.06,
   trend: "up",
   updatedAt: GENERATED_AT,
-  source: "CBOE",
+  source: SRC_CBOE,
   history: buildHistory("2026-01-10T00:00:00Z", [
     13.1, 13.8, 14.2, 14.0, 14.6, 15.1, 15.5, 15.9, 16.2, 16.5, 16.8, 17.0,
     16.6, 17.42,
   ]),
-  description: "30-day implied S&P 500 volatility.",
+  whatItIs:
+    "S&P 500 opsiyonlarının fiyatlarından türetilen 30 günlük ima edilen oynaklıktır. Piyasanın 'korku barometresi' olarak anılır.",
+  howToInterpret:
+    "20'nin altı sakin / risk iştahlı, 20–30 arası temkinli, 30'un üzeri stres dönemidir. Hızlı yükselişler hedge talebinin arttığına işaret eder.",
 };
 
 const fedBalanceSheet: MacroIndicator = {
   id: "us-fed-bs",
-  label: "Fed Balance Sheet",
+  label: "Fed Bilançosu",
+  labelEn: "Fed Balance Sheet",
   region: "us",
   category: "liquidity",
   value: 7.21,
@@ -123,19 +219,67 @@ const fedBalanceSheet: MacroIndicator = {
   changePercent: -0.28,
   trend: "down",
   updatedAt: GENERATED_AT,
-  source: "FRED (WALCL)",
+  source: SRC_FRED,
   history: buildHistory("2026-01-10T00:00:00Z", [
     7.55, 7.5, 7.46, 7.42, 7.38, 7.34, 7.31, 7.29, 7.27, 7.26, 7.25, 7.23,
     7.22, 7.21,
   ]),
-  description: "Total assets on the Federal Reserve balance sheet.",
+  whatItIs:
+    "ABD Merkez Bankası'nın (Fed) tuttuğu toplam varlıkların büyüklüğüdür. Küresel dolar likiditesi için temel göstergedir.",
+  howToInterpret:
+    "Büyüyen bilanço (QE) likiditeyi artırıp riskli varlıkları destekler; küçülen bilanço (QT) ise tam tersi etki yapar. Trend yönü, seviyesinden daha önemlidir.",
+};
+
+const fearGreed: MacroIndicator = {
+  id: "us-fear-greed",
+  label: "CNN Korku & Hırs Endeksi",
+  labelEn: "CNN Fear & Greed Index",
+  region: "us",
+  category: "sentiment",
+  value: 58,
+  unit: "score",
+  change: 6,
+  changePercent: 11.54,
+  trend: "up",
+  updatedAt: GENERATED_AT,
+  source: SRC_CNN,
+  history: buildHistory("2026-01-10T00:00:00Z", [
+    32, 35, 38, 42, 44, 47, 50, 52, 48, 46, 51, 54, 55, 58,
+  ]),
+  whatItIs:
+    "CNN Business tarafından yayımlanan, yedi piyasa göstergesinden türetilen 0–100 arası bileşik yatırımcı duyarlılığı endeksidir.",
+  howToInterpret:
+    "0–25 aşırı korku, 25–45 korku, 45–55 nötr, 55–75 hırs, 75–100 aşırı hırs. Uç değerler tarihsel olarak kontra göstergedir: aşırı korkuda tabanlar, aşırı hırsta tepeler sık görülür.",
+};
+
+const canSlimExposure: MacroIndicator = {
+  id: "us-canslim-exposure",
+  label: "CAN SLIM Tavsiye Edilen Hisse Ağırlığı",
+  labelEn: "investors.com CAN SLIM Recommended Exposure",
+  region: "us",
+  category: "breadth",
+  value: 60,
+  unit: "percent",
+  change: 20,
+  changePercent: 50,
+  trend: "up",
+  updatedAt: GENERATED_AT,
+  source: SRC_INVESTORS,
+  history: buildHistory("2026-01-10T00:00:00Z", [
+    30, 30, 20, 20, 20, 20, 40, 40, 40, 40, 40, 60, 60, 60,
+  ]),
+  whatItIs:
+    "Investor's Business Daily'nin 'Big Picture' köşesinde yayımlanan CAN SLIM metodolojisine göre tavsiye edilen hisse senedi ağırlığıdır (%0–100).",
+  howToInterpret:
+    "Trend 'confirmed uptrend' olduğunda %60–100, 'uptrend under pressure' olduğunda %40–60, 'market in correction' olduğunda %0–20 bandına çekilir. Ağırlığın yukarı revize edilmesi piyasa sağlığının iyileştiğine işaret eder.",
 };
 
 // ---------- TR indicators ----------
 
 const tr5yCds: MacroIndicator = {
   id: "tr-5y-cds",
-  label: "Turkey 5Y CDS",
+  label: "Türkiye 5Y CDS Primi",
+  labelEn: "Turkey 5Y CDS",
   region: "tr",
   category: "credit",
   value: 268,
@@ -144,16 +288,20 @@ const tr5yCds: MacroIndicator = {
   changePercent: -2.19,
   trend: "down",
   updatedAt: GENERATED_AT,
-  source: "IHS Markit (mock)",
+  source: SRC_IHS,
   history: buildHistory("2026-01-10T00:00:00Z", [
     325, 318, 310, 305, 298, 291, 285, 280, 278, 275, 273, 272, 270, 268,
   ]),
-  description: "Sovereign 5Y credit default swap spread.",
+  whatItIs:
+    "Türkiye Cumhuriyeti dolar cinsi borcunun 5 yıllık kredi temerrüt takası (CDS) primidir. Yurt dışı yatırımcının talep ettiği ülke riski primini ölçer.",
+  howToInterpret:
+    "Daralan CDS ülke riskinin azaldığına, genişleyen CDS ise risk algısının bozulduğuna işaret eder. Türk varlıklarında fiyatlamanın ana çapasıdır.",
 };
 
 const tcmbReserves: MacroIndicator = {
   id: "tr-tcmb-reserves",
-  label: "TCMB FX Reserves",
+  label: "TCMB Brüt Döviz Rezervleri",
+  labelEn: "TCMB FX Reserves",
   region: "tr",
   category: "reserves",
   value: 156.4,
@@ -162,17 +310,21 @@ const tcmbReserves: MacroIndicator = {
   changePercent: 1.36,
   trend: "up",
   updatedAt: GENERATED_AT,
-  source: "TCMB",
+  source: SRC_TCMB,
   history: buildHistory("2026-01-10T00:00:00Z", [
     138.2, 140.0, 141.6, 143.1, 145.0, 146.8, 148.3, 149.9, 151.2, 152.6,
     153.8, 154.6, 155.3, 156.4,
   ]),
-  description: "Gross FX reserves held at the Turkish central bank.",
+  whatItIs:
+    "TCMB bünyesinde tutulan toplam brüt döviz rezervleridir (altın dahil değildir).",
+  howToInterpret:
+    "Artan rezervler dış şoklara karşı tamponu güçlendirir ve TL için olumlu sinyaldir. Düşüş, döviz müdahalesi veya sermaye çıkışı anlamına gelebilir.",
 };
 
 const tcmbPolicyRate: MacroIndicator = {
   id: "tr-policy-rate",
-  label: "TCMB Policy Rate",
+  label: "TCMB Politika Faizi",
+  labelEn: "TCMB Policy Rate",
   region: "tr",
   category: "policy",
   value: 42.5,
@@ -181,16 +333,20 @@ const tcmbPolicyRate: MacroIndicator = {
   changePercent: 0,
   trend: "flat",
   updatedAt: GENERATED_AT,
-  source: "TCMB",
+  source: SRC_TCMB,
   history: buildHistory("2026-01-10T00:00:00Z", [
     50, 50, 47.5, 47.5, 47.5, 45, 45, 45, 42.5, 42.5, 42.5, 42.5, 42.5, 42.5,
   ]),
-  description: "One-week repo rate (headline policy rate).",
+  whatItIs:
+    "TCMB'nin bir hafta vadeli repo ihale faizidir; para politikasının ana çıpa göstergesidir.",
+  howToInterpret:
+    "Sıkı duruş (yüksek reel faiz) enflasyonla mücadele ve TL istikrarı açısından olumlu okunur. Erken indirim döngüsü TL üzerinde baskı oluşturabilir.",
 };
 
 const trCpiYoY: MacroIndicator = {
   id: "tr-cpi-yoy",
-  label: "TR CPI (YoY)",
+  label: "TR TÜFE (Yıllık)",
+  labelEn: "TR CPI (YoY)",
   region: "tr",
   category: "inflation",
   value: 38.2,
@@ -199,12 +355,15 @@ const trCpiYoY: MacroIndicator = {
   changePercent: -3.54,
   trend: "down",
   updatedAt: GENERATED_AT,
-  source: "TURKSTAT",
+  source: SRC_TURKSTAT,
   history: buildHistory("2026-01-10T00:00:00Z", [
     55.1, 53.4, 51.2, 49.0, 46.8, 44.7, 43.1, 41.8, 40.9, 40.2, 39.6, 39.1,
     38.8, 38.2,
   ]),
-  description: "Headline consumer inflation, year over year.",
+  whatItIs:
+    "Tüketici Fiyat Endeksi'nin bir önceki yılın aynı ayına göre yüzde değişimidir.",
+  howToInterpret:
+    "Düşüş trendi dezenflasyon sürecinin işlediğine işaret eder; hizmet enflasyonu ve beklentilerle birlikte değerlendirilmelidir. Reel faiz anahtar metriktir.",
 };
 
 // ---------- Region snapshots ----------
@@ -212,7 +371,15 @@ const trCpiYoY: MacroIndicator = {
 const usSnapshot: MacroRegionSnapshot = {
   region: "us",
   asOf: GENERATED_AT,
-  indicators: [us10y, us2y, us10y2ySpread, vix, fedBalanceSheet],
+  indicators: [
+    us10y,
+    us2y,
+    us10y2ySpread,
+    vix,
+    fedBalanceSheet,
+    fearGreed,
+    canSlimExposure,
+  ],
 };
 
 const trSnapshot: MacroRegionSnapshot = {
@@ -231,6 +398,9 @@ const yieldCurves: YieldCurveSnapshot[] = [
     spread: -0.14,
     slopeTrend: "down",
     updatedAt: GENERATED_AT,
+    source: SRC_FRED,
+    interpretation:
+      "Eğri hafif tersine dönmüş durumda. 2Y'nin 10Y'den yüksek kalması büyüme tarafında temkinli bir duruşu öneriyor; kısa vade Fed beklentisine, uzun vade büyüme ve enflasyon patikasına duyarlı.",
     tenors: [
       { tenor: "3M", tenorYears: 0.25, yield: 4.58 },
       { tenor: "6M", tenorYears: 0.5, yield: 4.52 },
@@ -249,6 +419,9 @@ const yieldCurves: YieldCurveSnapshot[] = [
     spread: -11.6,
     slopeTrend: "up",
     updatedAt: GENERATED_AT,
+    source: SRC_TCMB,
+    interpretation:
+      "TL eğrisi belirgin şekilde tersine dönmüş; kısa vade yüksek politika faizini, uzun vade ise dezenflasyon beklentisini fiyatlıyor. Eğimdeki toparlanma normalleşmenin işareti olarak izlenmeli.",
     tenors: [
       { tenor: "3M", tenorYears: 0.25, yield: 42.1 },
       { tenor: "6M", tenorYears: 0.5, yield: 41.2 },
@@ -265,48 +438,60 @@ const yieldCurves: YieldCurveSnapshot[] = [
 const signals: MacroSignalCard[] = [
   {
     id: "sig-001",
-    title: "US curve remains inverted",
+    title: "ABD getiri eğrisi tersine dönük kalıyor",
     summary:
-      "10Y–2Y held near -14 bps this week. Recession signal persists even as the long end rallies.",
+      "10Y–2Y bu hafta -14 bp civarında tutundu. Uzun vadede yaşanan toparlanmaya rağmen resesyon sinyali devam ediyor.",
     severity: "watch",
     confidence: 0.68,
-    source: "internal-curve-model",
+    source: SRC_INTERNAL,
     relatedIndicators: ["us-10y", "us-2y", "us-10y-2y"],
     region: "us",
     updatedAt: GENERATED_AT,
   },
   {
     id: "sig-002",
-    title: "Volatility drift higher",
+    title: "Oynaklıkta yukarı eğilim",
     summary:
-      "VIX closed at 17.4, above its 20-day mean. Positioning suggests hedging demand is rising.",
+      "VIX 20 günlük ortalamasının üzerinde 17,4'e tırmandı. Opsiyon konumlanması, hedge talebinin arttığına işaret ediyor.",
     severity: "info",
     confidence: 0.55,
-    source: "internal-vol-model",
+    source: SRC_INTERNAL,
     relatedIndicators: ["us-vix"],
     region: "us",
     updatedAt: GENERATED_AT,
   },
   {
     id: "sig-003",
-    title: "Turkey CDS continues to tighten",
+    title: "ABD yatırımcı duyarlılığı ılımlı hırs bölgesinde",
     summary:
-      "5Y CDS fell to 268 bps, a multi-month low. FX reserves rebuild is supporting sovereign risk perception.",
+      "CNN Korku & Hırs Endeksi 58'e yükseldi ve investors.com CAN SLIM ağırlığı %60'a çıktı. Trend 'confirmed uptrend' tarafına dönüyor, ancak aşırı hırs bölgesine yaklaşılırsa temkinli olmak gerekebilir.",
+    severity: "info",
+    confidence: 0.62,
+    source: SRC_INTERNAL,
+    relatedIndicators: ["us-fear-greed", "us-canslim-exposure"],
+    region: "us",
+    updatedAt: GENERATED_AT,
+  },
+  {
+    id: "sig-004",
+    title: "Türkiye CDS daralmaya devam ediyor",
+    summary:
+      "5Y CDS 268 bp ile çok aylık en düşük seviyeye geriledi. Rezervlerin toparlanması ülke risk algısını destekliyor.",
     severity: "info",
     confidence: 0.71,
-    source: "internal-credit-model",
+    source: SRC_INTERNAL,
     relatedIndicators: ["tr-5y-cds", "tr-tcmb-reserves"],
     region: "tr",
     updatedAt: GENERATED_AT,
   },
   {
-    id: "sig-004",
-    title: "TCMB likely on hold into next meeting",
+    id: "sig-005",
+    title: "TCMB bir sonraki toplantıya kadar muhtemelen beklemede",
     summary:
-      "Policy rate unchanged at 42.5% with disinflation continuing. Forward guidance remains hawkish.",
+      "Politika faizi %42,5'te sabit; dezenflasyon devam ederken sözlü yönlendirme şahin tonunu koruyor.",
     severity: "watch",
     confidence: 0.6,
-    source: "internal-policy-model",
+    source: SRC_INTERNAL,
     relatedIndicators: ["tr-policy-rate", "tr-cpi-yoy"],
     region: "tr",
     updatedAt: GENERATED_AT,
@@ -318,36 +503,45 @@ const signals: MacroSignalCard[] = [
 const themes: MacroTheme[] = [
   {
     id: "theme-us-recession-watch",
-    themeName: "US recession watch",
+    themeName: "ABD resesyon izleme",
     description:
-      "Curve, volatility and liquidity gauges we watch for a growth slowdown.",
+      "Büyümede yavaşlama riskine karşı izlenen eğri, oynaklık ve likidite göstergeleri.",
     indicators: ["us-10y-2y", "us-vix", "us-fed-bs"],
-    bias: "defensive",
+    bias: "savunmacı",
     region: "us",
   },
   {
     id: "theme-us-rates-path",
-    themeName: "US rates path",
-    description: "Inputs into the next Fed policy decision.",
+    themeName: "ABD faiz patikası",
+    description: "Bir sonraki Fed kararına girdi sağlayan makro göstergeler.",
     indicators: ["us-10y", "us-2y", "us-fed-bs"],
-    bias: "neutral",
+    bias: "nötr",
+    region: "us",
+  },
+  {
+    id: "theme-us-sentiment",
+    themeName: "ABD yatırımcı duyarlılığı",
+    description:
+      "Risk iştahını ve CAN SLIM tavsiye ağırlığını birlikte takip eden duyarlılık sepeti.",
+    indicators: ["us-fear-greed", "us-canslim-exposure", "us-vix"],
+    bias: "risk-iştahı-takibi",
     region: "us",
   },
   {
     id: "theme-tr-disinflation",
-    themeName: "TR disinflation trajectory",
+    themeName: "TR dezenflasyon patikası",
     description:
-      "Indicators tracking Turkey's path back to single-digit inflation.",
+      "Türkiye'nin tek haneli enflasyona dönüş sürecini izleyen göstergeler.",
     indicators: ["tr-cpi-yoy", "tr-policy-rate", "tr-5y-cds"],
-    bias: "pro-normalization",
+    bias: "normalleşme-yanlı",
     region: "tr",
   },
   {
     id: "theme-tr-external-buffers",
-    themeName: "TR external buffers",
-    description: "Reserves and credit risk gauges for external stability.",
+    themeName: "TR dış tamponlar",
+    description: "Dış kırılganlığı ölçen rezerv ve kredi riski göstergeleri.",
     indicators: ["tr-tcmb-reserves", "tr-5y-cds"],
-    bias: "improving",
+    bias: "iyileşiyor",
     region: "tr",
   },
 ];
@@ -357,77 +551,124 @@ const themes: MacroTheme[] = [
 const calendar: MacroCalendarItem[] = [
   {
     id: "evt-fomc-minutes",
-    eventName: "FOMC Minutes",
+    eventName: "FOMC Toplantı Tutanakları",
     region: "us",
     scheduledAt: "2026-04-22T18:00:00Z",
     expectedImpact: "high",
     actual: null,
     consensus: null,
     previous: null,
-    source: "Federal Reserve",
+    source: SRC_FED,
     relatedIndicators: ["us-10y", "us-2y", "us-fed-bs"],
   },
   {
     id: "evt-us-cpi",
-    eventName: "US CPI (MoM)",
+    eventName: "ABD TÜFE (Aylık)",
     region: "us",
     scheduledAt: "2026-04-24T12:30:00Z",
     expectedImpact: "high",
     actual: null,
-    consensus: "0.2%",
-    previous: "0.3%",
-    source: "BLS",
+    consensus: "%0,2",
+    previous: "%0,3",
+    source: SRC_BLS,
     relatedIndicators: ["us-10y", "us-2y"],
   },
   {
     id: "evt-us-nfp",
-    eventName: "US Non-Farm Payrolls",
+    eventName: "ABD Tarım Dışı İstihdam",
     region: "us",
     scheduledAt: "2026-05-02T12:30:00Z",
     expectedImpact: "high",
     actual: null,
-    consensus: "185K",
-    previous: "212K",
-    source: "BLS",
+    consensus: "185 bin",
+    previous: "212 bin",
+    source: SRC_BLS,
     relatedIndicators: ["us-2y", "us-vix"],
   },
   {
     id: "evt-tcmb-decision",
-    eventName: "TCMB Rate Decision",
+    eventName: "TCMB Faiz Kararı",
     region: "tr",
     scheduledAt: "2026-04-25T11:00:00Z",
     expectedImpact: "high",
     actual: null,
-    consensus: "42.5%",
-    previous: "42.5%",
-    source: "TCMB",
+    consensus: "%42,5",
+    previous: "%42,5",
+    source: SRC_TCMB,
     relatedIndicators: ["tr-policy-rate", "tr-5y-cds"],
   },
   {
     id: "evt-tr-cpi",
-    eventName: "Turkey CPI (YoY)",
+    eventName: "Türkiye TÜFE (Yıllık)",
     region: "tr",
     scheduledAt: "2026-05-05T07:00:00Z",
     expectedImpact: "high",
     actual: null,
-    consensus: "36.9%",
-    previous: "38.2%",
-    source: "TURKSTAT",
+    consensus: "%36,9",
+    previous: "%38,2",
+    source: SRC_TURKSTAT,
     relatedIndicators: ["tr-cpi-yoy", "tr-policy-rate"],
   },
   {
     id: "evt-tr-reserves",
-    eventName: "TCMB Weekly Reserves",
+    eventName: "TCMB Haftalık Rezervler",
     region: "tr",
     scheduledAt: "2026-04-24T11:00:00Z",
     expectedImpact: "medium",
     actual: null,
     consensus: null,
-    previous: "$155.3B",
-    source: "TCMB",
+    previous: "155,3 Mr$",
+    source: SRC_TCMB,
     relatedIndicators: ["tr-tcmb-reserves"],
   },
 ];
+
+// ---------- AI-powered investability summary ----------
+
+const aiSummary: MacroAiSummary = {
+  id: "ai-summary-2026-04-19",
+  generatedAt: GENERATED_AT,
+  verdict: "cautious",
+  headline: "Seçici yatırım ortamı",
+  narrative:
+    "Makro resim temkinli-pozitif: ABD tarafında dezenflasyon yavaş ilerlerken getiri eğrisi hâlâ tersine dönmüş durumda ve Fed bilançosu küçülmeye devam ediyor; buna karşın CNN Korku & Hırs Endeksi ılımlı hırs bölgesine (%58) geçti ve investors.com CAN SLIM tavsiyesi %60'a yükseldi — bu bileşim, kalite ve momentum taraflı seçici pozisyonlanmayı destekliyor. Türkiye tarafında CDS primi daralıyor, TCMB rezervleri artıyor ve dezenflasyon sürüyor, ancak politika faizindeki yatay seyir ve yüksek enflasyon reel bazda önlemli kalmayı gerektiriyor.",
+  highlights: [
+    "ABD yatırımcı duyarlılığı (CNN Korku & Hırs 58) ve CAN SLIM tavsiye ağırlığı (%60) 'confirmed uptrend' bölgesinde.",
+    "Türkiye 5Y CDS primi 268 bp ile çok aylık dip; dış tamponlar güçleniyor.",
+    "Türkiye dezenflasyonu sürüyor (TÜFE %38,2, yılbaşından bu yana yaklaşık 17 puan iyileşme).",
+  ],
+  risks: [
+    "ABD 10Y–2Y eğrisi hâlâ negatif (-14 bp), resesyon sinyali canlı.",
+    "VIX 17,4'e yükseldi; oynaklık trendi yukarı yönlü.",
+    "TCMB politika faizi %42,5'te sabit, reel faiz katı — erken bir indirim döngüsü TL için risk oluşturur.",
+  ],
+  confidence: 0.62,
+  model: "mock: kural tabanlı sentez",
+  relatedIndicators: [
+    "us-10y",
+    "us-2y",
+    "us-10y-2y",
+    "us-vix",
+    "us-fed-bs",
+    "us-fear-greed",
+    "us-canslim-exposure",
+    "tr-5y-cds",
+    "tr-tcmb-reserves",
+    "tr-policy-rate",
+    "tr-cpi-yoy",
+  ],
+  sources: [
+    SRC_FRED,
+    SRC_FMP,
+    SRC_CBOE,
+    SRC_CNN,
+    SRC_INVESTORS,
+    SRC_TCMB,
+    SRC_TURKSTAT,
+    SRC_IHS,
+    SRC_INTERNAL,
+  ],
+};
 
 export const mockMacroDashboard: MacroDashboard = {
   generatedAt: GENERATED_AT,
@@ -437,6 +678,7 @@ export const mockMacroDashboard: MacroDashboard = {
   signals,
   themes,
   calendar,
+  aiSummary,
 };
 
 export const emptyMacroDashboard: MacroDashboard = {
@@ -450,4 +692,5 @@ export const emptyMacroDashboard: MacroDashboard = {
   signals: [],
   themes: [],
   calendar: [],
+  aiSummary: null,
 };

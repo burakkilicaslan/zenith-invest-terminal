@@ -4,6 +4,13 @@ import type { DashboardState, MacroRegion } from "@/lib/types";
 
 const STATES: DashboardState[] = ["populated", "loading", "empty", "error"];
 
+const STATE_LABEL: Record<DashboardState, string> = {
+  populated: "veriyle dolu",
+  loading: "yükleniyor",
+  empty: "boş",
+  error: "hata",
+};
+
 interface Props {
   current: DashboardState;
   region: MacroRegion;
@@ -15,8 +22,8 @@ interface Props {
  */
 export function StateSwitcher({ current, region }: Props) {
   return (
-    <nav aria-label="Dashboard state preview" className="state-switcher">
-      <span className="state-switcher-label">State:</span>
+    <nav aria-label="Panel durum önizlemesi" className="state-switcher">
+      <span className="state-switcher-label">Durum:</span>
       {STATES.map((s) => {
         const params = new URLSearchParams();
         params.set("region", region);
@@ -31,7 +38,7 @@ export function StateSwitcher({ current, region }: Props) {
             className={`state-switcher-link${s === current ? " is-active" : ""}`}
             aria-current={s === current ? "page" : undefined}
           >
-            {s}
+            {STATE_LABEL[s]}
           </Link>
         );
       })}

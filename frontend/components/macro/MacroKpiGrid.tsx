@@ -16,8 +16,8 @@ export function MacroKpiGrid({ indicators, state = "populated" }: Props) {
     <SectionStateView
       state={resolvedState}
       loadingRows={4}
-      emptyMessage="No macro indicators for this region yet."
-      errorMessage="Couldn't load macro indicators."
+      emptyMessage="Bu bölge için henüz makro gösterge yok."
+      errorMessage="Makro göstergeler yüklenemedi."
     >
       <div className="macro-kpi-grid">
         {indicators.map((indicator) => (

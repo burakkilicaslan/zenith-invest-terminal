@@ -8,7 +8,10 @@ interface LoadingProps {
   label?: string;
 }
 
-export function LoadingState({ rows = 3, label = "Loading…" }: LoadingProps) {
+export function LoadingState({
+  rows = 3,
+  label = "Yükleniyor…",
+}: LoadingProps) {
   return (
     <div
       className="state-loading"
@@ -30,7 +33,9 @@ interface EmptyProps {
   message?: string;
 }
 
-export function EmptyState({ message = "No data to display." }: EmptyProps) {
+export function EmptyState({
+  message = "Görüntülenecek veri yok.",
+}: EmptyProps) {
   return <div className="state-empty">{message}</div>;
 }
 
@@ -40,7 +45,7 @@ interface ErrorProps {
 }
 
 export function ErrorState({
-  message = "Something went wrong loading this section.",
+  message = "Bu bölüm yüklenirken bir sorun oluştu.",
   onRetry,
 }: ErrorProps) {
   return (
@@ -52,7 +57,7 @@ export function ErrorState({
           onClick={onRetry}
           className="state-error-retry"
         >
-          Retry
+          Yeniden dene
         </button>
       ) : null}
     </div>

@@ -21,23 +21,27 @@ const TREND_SYMBOL = {
 function categoryLabel(category: MacroIndicator["category"]): string {
   switch (category) {
     case "rates":
-      return "Rates";
+      return "Faiz";
     case "curve":
-      return "Curve";
+      return "Getiri eğrisi";
     case "volatility":
-      return "Volatility";
+      return "Oynaklık";
     case "liquidity":
-      return "Liquidity";
+      return "Likidite";
     case "credit":
-      return "Credit";
+      return "Kredi riski";
     case "reserves":
-      return "Reserves";
+      return "Rezervler";
     case "policy":
-      return "Policy";
+      return "Para politikası";
     case "fx":
-      return "FX";
+      return "Kur";
     case "inflation":
-      return "Inflation";
+      return "Enflasyon";
+    case "sentiment":
+      return "Yatırımcı duyarlılığı";
+    case "breadth":
+      return "Piyasa genişliği";
   }
 }
 
@@ -45,7 +49,9 @@ function categoryLabel(category: MacroIndicator["category"]): string {
  * KPI card for a single macro indicator.
  *
  * Shows headline value, delta vs. prior observation, a sparkline of
- * recent history, and a freshness badge with source + last updated.
+ * recent history, a freshness badge with source + last updated, and
+ * Turkish "nedir" / "nasıl yorumlanır" copy so every data point is
+ * self-documenting.
  */
 export function MacroKpiCard({ indicator }: Props) {
   const trendClass =
@@ -58,11 +64,16 @@ export function MacroKpiCard({ indicator }: Props) {
   return (
     <article
       className="card macro-kpi-card"
-      aria-label={`${indicator.label} KPI`}
+      aria-label={`${indicator.label} göstergesi`}
     >
       <header className="macro-kpi-head">
         <div>
           <div className="macro-kpi-label">{indicator.label}</div>
+          {indicator.labelEn ? (
+            <div className="macro-kpi-label-en" title={indicator.labelEn}>
+              {indicator.labelEn}
+            </div>
+          ) : null}
           <div className="macro-kpi-category">
             {categoryLabel(indicator.category)}
           </div>
@@ -70,7 +81,7 @@ export function MacroKpiCard({ indicator }: Props) {
         <Sparkline
           points={indicator.history}
           trend={indicator.trend}
-          ariaLabel={`${indicator.label} sparkline`}
+          ariaLabel={`${indicator.label} trend grafiği`}
         />
       </header>
 
@@ -86,9 +97,12 @@ export function MacroKpiCard({ indicator }: Props) {
         </span>
       </div>
 
-      {indicator.description ? (
-        <p className="macro-kpi-description">{indicator.description}</p>
-      ) : null}
+      <dl className="macro-kpi-explainer">
+        <dt>Nedir?</dt>
+        <dd>{indicator.whatItIs}</dd>
+        <dt>Nasıl yorumlanır?</dt>
+        <dd>{indicator.howToInterpret}</dd>
+      </dl>
 
       <FreshnessBadge
         source={indicator.source}

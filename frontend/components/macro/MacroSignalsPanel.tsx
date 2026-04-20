@@ -20,6 +20,13 @@ const SEVERITY_CLASS: Record<MacroSignalCard["severity"], string> = {
   critical: "severity-critical",
 };
 
+const SEVERITY_LABEL: Record<MacroSignalCard["severity"], string> = {
+  info: "bilgi",
+  watch: "izlemede",
+  warning: "uyarı",
+  critical: "kritik",
+};
+
 /**
  * Compact macro signal summary. Each card shows severity, confidence
  * and the indicators the signal is derived from.
@@ -38,8 +45,8 @@ export function MacroSignalsPanel({
     <SectionStateView
       state={resolvedState}
       loadingRows={3}
-      emptyMessage="No macro signals right now."
-      errorMessage="Couldn't load macro signals."
+      emptyMessage="Şu an için sinyal bulunmuyor."
+      errorMessage="Makro sinyaller yüklenemedi."
     >
       <div className="signal-list">
         {signals.map((signal) => (
@@ -49,14 +56,30 @@ export function MacroSignalsPanel({
           >
             <header className="signal-head">
               <span className="signal-title">{signal.title}</span>
-              <span className={`signal-severity-badge ${SEVERITY_CLASS[signal.severity]}`}>
-                {signal.severity}
+              <span
+                className={`signal-severity-badge ${SEVERITY_CLASS[signal.severity]}`}
+              >
+                {SEVERITY_LABEL[signal.severity]}
               </span>
             </header>
             <p className="signal-summary">{signal.summary}</p>
             <div className="signal-meta">
-              <span>Confidence {(signal.confidence * 100).toFixed(0)}%</span>
-              {signal.source ? <span>· {signal.source}</span> : null}
+              <span>Güven %{(signal.confidence * 100).toFixed(0)}</span>
+              <span>
+                · Kaynak:{" "}
+                {signal.source.url ? (
+                  <a
+                    className="signal-meta-link"
+                    href={signal.source.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    {signal.source.code}
+                  </a>
+                ) : (
+                  signal.source.code
+                )}
+              </span>
               <span>· {formatDateTime(signal.updatedAt)}</span>
             </div>
             {signal.relatedIndicators.length > 0 ? (
