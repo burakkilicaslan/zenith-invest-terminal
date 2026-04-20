@@ -1,106 +1,38 @@
-// Frontend-local mirror of the Macro Dashboard domain types.
+// Epic 1 — Macro Dashboard domain types.
 //
-// These shapes mirror `shared/schemas/dashboard.ts` (Epic 1.1). Once
-// the shared package is wired into the frontend build, this file will
-// be replaced with a re-export from `shared/schemas/dashboard`. Keeping
-// a local copy here keeps the UI skeleton self-contained and mock-first.
+// These shapes drive the macro strategy dashboard (US + Turkey). The
+// dashboard is mock-first: every surface reads typed fixtures and no
+// live data source is wired in yet.
+//
+// Equity/position/portfolio shapes are intentionally NOT defined here;
+// they are preserved for Epic 2 in `shared/schemas/dashboard.ts`.
 
-export type AssetClass =
-  | "equity"
-  | "fixed_income"
-  | "cash"
-  | "crypto"
-  | "commodity"
-  | "alternative";
+export type MacroRegion = "us" | "tr";
 
 export type TrendDirection = "up" | "down" | "flat";
 
-export type InsightSeverity = "info" | "watch" | "warning" | "critical";
+export type SignalSeverity = "info" | "watch" | "warning" | "critical";
 
-export type InsightCategory =
-  | "macro"
-  | "market"
-  | "portfolio"
-  | "signal"
-  | "news";
+export type MacroCategory =
+  | "rates"
+  | "curve"
+  | "volatility"
+  | "liquidity"
+  | "credit"
+  | "reserves"
+  | "policy"
+  | "fx"
+  | "inflation";
 
-export type ActivityType =
-  | "trade"
-  | "deposit"
-  | "withdrawal"
-  | "dividend"
-  | "rebalance"
-  | "system";
+export type IndicatorUnit =
+  | "percent"
+  | "bps"
+  | "index"
+  | "usd_trillions"
+  | "usd_billions"
+  | "ratio";
 
-export interface DateRange {
-  start: string;
-  end: string;
-}
-
-export interface AllocationSlice {
-  assetClass: AssetClass;
-  allocationPercent: number;
-}
-
-export interface DashboardSummary {
-  dateRange: DateRange;
-  totalPortfolioValue: number;
-  dailyChange: number;
-  dailyChangePercent: number;
-  cashBalance: number;
-  investedBalance: number;
-  allocationOverview: AllocationSlice[];
-}
-
-export interface AssetPosition {
-  symbol: string;
-  name: string;
-  assetClass: AssetClass;
-  quantity: number;
-  marketPrice: number;
-  marketValue: number;
-  costBasis: number;
-  unrealizedPnL: number;
-  unrealizedPnLPercent: number;
-  allocationPercent: number;
-}
-
-export interface MarketSnapshot {
-  symbol: string;
-  label: string;
-  currentValue: number;
-  change: number;
-  changePercent: number;
-  trend: TrendDirection;
-  updatedAt: string;
-}
-
-export interface InsightCard {
-  id: string;
-  title: string;
-  summary: string;
-  severity: InsightSeverity;
-  category: InsightCategory;
-  confidence: number;
-  source: string | null;
-}
-
-export interface ActivityItem {
-  id: string;
-  timestamp: string;
-  type: ActivityType;
-  title: string;
-  description: string;
-  relatedSymbol: string | null;
-}
-
-export interface MacroDashboard {
-  summary: DashboardSummary;
-  positions: AssetPosition[];
-  marketSnapshot: MarketSnapshot[];
-  insights: InsightCard[];
-  activity: ActivityItem[];
-}
+export type EventImpact = "low" | "medium" | "high";
 
 export type DashboardState = "loading" | "empty" | "populated" | "error";
 
@@ -111,4 +43,125 @@ export function isDashboardState(value: unknown): value is DashboardState {
     value === "populated" ||
     value === "error"
   );
+}
+
+export function isMacroRegion(value: unknown): value is MacroRegion {
+  return value === "us" || value === "tr";
+}
+
+export interface MacroTimeSeriesPoint {
+  /** ISO 8601 timestamp for the observation. */
+  timestamp: string;
+  value: number;
+  /** Optional benchmark value at the same timestamp (e.g. long-run mean). */
+  benchmark?: number | null;
+  /** Optional period-over-period change (native indicator unit). */
+  change?: number | null;
+}
+
+export interface MacroIndicator {
+  id: string;
+  label: string;
+  region: MacroRegion;
+  category: MacroCategory;
+  /** Current observed value in the indicator's native unit. */
+  value: number;
+  unit: IndicatorUnit;
+  /** Absolute change vs. prior observation (same unit as `value`). */
+  change: number;
+  /** Percent change vs. prior observation (e.g. `0.42` = +0.42%). */
+  changePercent: number;
+  trend: TrendDirection;
+  /** ISO 8601 timestamp the `value` was observed at. */
+  updatedAt: string;
+  /** Human-readable source label (e.g. "FRED", "TCMB", "CBOE"). */
+  source: string;
+  /** Recent observations powering sparklines / trend charts. */
+  history: MacroTimeSeriesPoint[];
+  /** Short descriptive blurb shown under the KPI. */
+  description?: string | null;
+}
+
+export interface MacroRegionSnapshot {
+  region: MacroRegion;
+  /** ISO 8601 timestamp representing the "as-of" time for the snapshot. */
+  asOf: string;
+  indicators: MacroIndicator[];
+}
+
+export interface YieldCurveSnapshot {
+  country: MacroRegion;
+  tenYearYield: number;
+  twoYearYield: number;
+  /** 10Y minus 2Y, in percent (e.g. `-0.18` = inverted by 18 bps). */
+  spread: number;
+  slopeTrend: TrendDirection;
+  updatedAt: string;
+  /** Optional extended tenor series for an ASCII-style curve chart. */
+  tenors?: YieldCurvePoint[];
+}
+
+export interface YieldCurvePoint {
+  /** Tenor label (e.g. "3M", "2Y", "10Y"). */
+  tenor: string;
+  /** Tenor in years, for curve ordering / plotting. */
+  tenorYears: number;
+  /** Yield in percent (e.g. `4.28`). */
+  yield: number;
+}
+
+export interface MacroSignalCard {
+  id: string;
+  title: string;
+  summary: string;
+  severity: SignalSeverity;
+  /** Model confidence (0.0–1.0). */
+  confidence: number;
+  source: string | null;
+  /** Indicator ids this signal is derived from. */
+  relatedIndicators: string[];
+  /** Region this signal applies to; `null` means cross-region. */
+  region: MacroRegion | null;
+  updatedAt: string;
+}
+
+export interface MacroTheme {
+  id: string;
+  themeName: string;
+  description: string;
+  /** Indicator ids that make up the theme / watchlist. */
+  indicators: string[];
+  /** Optional directional bias label (e.g. "pro-risk", "defensive"). */
+  bias?: string | null;
+  region: MacroRegion | null;
+}
+
+export interface MacroCalendarItem {
+  id: string;
+  eventName: string;
+  region: MacroRegion;
+  /** ISO 8601 timestamp the event is scheduled for. */
+  scheduledAt: string;
+  expectedImpact: EventImpact;
+  /** Realized / actual value, once released. `null` until then. */
+  actual: number | string | null;
+  /** Consensus expectation. `null` if none published. */
+  consensus: number | string | null;
+  /** Optional prior value, for context. */
+  previous?: number | string | null;
+  source: string;
+  /** Optional indicator ids the event moves. */
+  relatedIndicators?: string[];
+}
+
+/** Envelope for the Epic 1 macro dashboard payload. */
+export interface MacroDashboard {
+  generatedAt: string;
+  /** Source label for the overall payload (e.g. "mock", "aggregator"). */
+  source: string;
+  regions: MacroRegionSnapshot[];
+  yieldCurves: YieldCurveSnapshot[];
+  signals: MacroSignalCard[];
+  themes: MacroTheme[];
+  calendar: MacroCalendarItem[];
 }
