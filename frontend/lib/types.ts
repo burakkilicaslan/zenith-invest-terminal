@@ -49,6 +49,51 @@ export type EventImpact = "low" | "medium" | "high";
 export type DashboardState = "loading" | "empty" | "populated" | "error";
 
 /**
+ * Resolution mode for a single indicator or the whole dashboard.
+ *
+ * - `live` — value came from a successful provider fetch in this build.
+ * - `cached` — value came from an earlier provider fetch that is still
+ *   within TTL but failed to refresh this cycle.
+ * - `mock` — value came from the deterministic Epic 1 mock fixture
+ *   because no provider key was configured, the provider was degraded,
+ *   or the indicator has no live source mapped yet.
+ */
+export type ProviderMode = "live" | "cached" | "mock";
+
+/**
+ * Provider health / degradation state surfaced to the UI. This lets
+ * the dashboard show "kısmen canlı" style chips when one provider is
+ * down but the rest are serving live data.
+ */
+export interface ProviderStatus {
+  /** Short provider code (e.g. "FRED", "FMP", "Polygon", "TCMB"). */
+  code: string;
+  /** Human-readable label (e.g. "Federal Reserve Economic Data"). */
+  label: string;
+  /** Current resolution mode for this provider. */
+  mode: ProviderMode;
+  /** ISO 8601 timestamp of the most recent successful fetch, if any. */
+  lastSuccessAt: string | null;
+  /** Short reason string when the provider is degraded. */
+  lastError: string | null;
+}
+
+/**
+ * Per-indicator provenance. Attached in addition to the upstream
+ * `DataSource` so the UI can show whether *this* observation came
+ * from a live fetch, a cached fetch, or the mock fixture.
+ */
+export interface IndicatorProvenance {
+  mode: ProviderMode;
+  /** ISO 8601 timestamp the value was fetched or generated. */
+  fetchedAt: string;
+  /** Provider code that serviced the fetch, or `null` for mock. */
+  providerCode: string | null;
+  /** Optional short reason when `mode` is `cached` or `mock`. */
+  fallbackReason?: string | null;
+}
+
+/**
  * Investability verdict the top-level AI summary can emit. The UI
  * colors the verdict pill based on this value.
  */
@@ -120,6 +165,13 @@ export interface MacroIndicator {
   whatItIs: string;
   /** "Nasıl yorumlanır?" — how a reader should interpret the reading. */
   howToInterpret: string;
+  /**
+   * Optional provenance describing whether this observation came from
+   * a live fetch, a cached fetch, or the mock fixture. Absent on
+   * legacy fixtures; consumers should treat missing provenance as an
+   * implicit `{ mode: "mock" }`.
+   */
+  provenance?: IndicatorProvenance | null;
 }
 
 export interface MacroRegionSnapshot {
@@ -240,6 +292,13 @@ export interface MacroDashboard {
   generatedAt: string;
   /** Source label for the overall payload (e.g. "mock", "aggregator"). */
   source: string;
+  /**
+   * Overall resolution mode across the dashboard. `live` when every
+   * mapped indicator was served from a provider this cycle, `mixed`
+   * when at least one live + one cached/mock indicator is present,
+   * and `mock` when the entire payload came from fixtures.
+   */
+  mode?: ProviderMode | "mixed";
   regions: MacroRegionSnapshot[];
   yieldCurves: YieldCurveSnapshot[];
   signals: MacroSignalCard[];
@@ -247,4 +306,10 @@ export interface MacroDashboard {
   calendar: MacroCalendarItem[];
   /** Top-level AI summary. `null` when the model has no assessment yet. */
   aiSummary: MacroAiSummary | null;
+  /**
+   * Per-provider health snapshot surfaced to the UI. Absent on
+   * legacy mock-only payloads; consumers should default to an empty
+   * list when missing.
+   */
+  providerStatus?: ProviderStatus[];
 }
