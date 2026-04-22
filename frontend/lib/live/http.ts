@@ -20,12 +20,21 @@ export interface ProviderFetchOptions {
   provider: string;
   policy: ProviderPolicy;
   headers?: Record<string, string>;
+  /**
+   * How to handle HTTP 3xx responses. Defaults to `"follow"` so
+   * providers that emit ordinary redirects (CDN hops, trailing-slash
+   * normalization) continue to work transparently. Use `"manual"` to
+   * turn an unexpected redirect into a typed `ProviderError` — this
+   * matters for providers like TCMB EVDS that reply to auth failures
+   * with a 302 to an HTML portal instead of a proper 401/403.
+   */
+  redirect?: "follow" | "manual";
 }
 
 export async function providerFetch(
   options: ProviderFetchOptions,
 ): Promise<unknown> {
-  const { url, provider, policy, headers } = options;
+  const { url, provider, policy, headers, redirect = "follow" } = options;
   let attempt = 0;
   let lastError: unknown = null;
 
@@ -40,6 +49,7 @@ export async function providerFetch(
           ...(headers ?? {}),
         },
         cache: "no-store",
+        redirect,
       });
       if (response.status === 429) {
         const retryAfter = parseRetryAfter(response.headers.get("retry-after"));
@@ -50,6 +60,24 @@ export async function providerFetch(
           provider,
           "upstream_unavailable",
           `${provider} returned HTTP ${response.status}`,
+          { status: response.status },
+        );
+      }
+      // `redirect: "manual"` yields either a standard 3xx response
+      // (Node's undici) or an opaque-redirect response with status 0
+      // (browser-ish fetch shims). Either way the caller did not opt
+      // in to following the redirect, so surface it as an upstream
+      // availability problem instead of trying to parse the redirect
+      // target's body.
+      if (
+        redirect === "manual" &&
+        ((response.status >= 300 && response.status < 400) ||
+          (response.type === "opaqueredirect" && response.status === 0))
+      ) {
+        throw new ProviderError(
+          provider,
+          "upstream_unavailable",
+          `${provider} returned unexpected redirect (HTTP ${response.status})`,
           { status: response.status },
         );
       }

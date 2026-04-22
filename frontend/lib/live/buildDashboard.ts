@@ -130,19 +130,26 @@ const LIVE_BINDINGS: Record<string, LiveBinding> = {
   "tr-tcmb-reserves": {
     primary: "TCMB",
     primaryCacheKey: `TCMB:${TCMB_SERIES.TCMB_RESERVES}`,
+    // TCMB publishes reserves weekly — EVDS encodes weekly as
+    // `frequency=3` (not `4`, which is semi-monthly). The previous
+    // value caused EVDS to up-sample the weekly series and return
+    // an empty payload that fell back to mock.
     fetchPrimary: (apiKey) =>
       fetchTcmbSeries(
         { apiKey },
-        { seriesId: TCMB_SERIES.TCMB_RESERVES, frequency: 4 },
+        { seriesId: TCMB_SERIES.TCMB_RESERVES, frequency: 3 },
       ),
   },
   "tr-cpi-yoy": {
     primary: "TCMB",
     primaryCacheKey: `TCMB:${TCMB_SERIES.CPI_YOY}`,
+    // CPI is natively monthly on EVDS → `frequency=5`. The earlier
+    // value (`3`, weekly) asked EVDS to up-sample a monthly series
+    // which returned no rows and silently downgraded CPI to mock.
     fetchPrimary: (apiKey) =>
       fetchTcmbSeries(
         { apiKey },
-        { seriesId: TCMB_SERIES.CPI_YOY, frequency: 3 },
+        { seriesId: TCMB_SERIES.CPI_YOY, frequency: 5 },
       ),
   },
 };
