@@ -32,6 +32,7 @@ import {
 import { cacheGet, cacheSet } from "./cache";
 import { summarizeError } from "./errors";
 import { ProviderStatusTracker } from "./status";
+import { deriveAiSummary } from "./aiSummary";
 import {
   FRED_SERIES,
   fetchFredSeries,
@@ -258,12 +259,15 @@ async function resolveLiveDashboard(): Promise<MacroDashboard> {
           ? "cached"
           : "mock";
 
+  const aiSummary = deriveAiSummary(regions, mockMacroDashboard.aiSummary, mode);
+
   return {
     ...mockMacroDashboard,
     mode,
     source: mode === "mock" ? "mock" : mode === "live" ? "canlı" : "kısmen canlı",
     regions,
     providerStatus,
+    aiSummary,
   };
 }
 

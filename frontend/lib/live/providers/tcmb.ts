@@ -66,27 +66,29 @@ export async function fetchTcmbSeries(
   const frequency = options.frequency ?? 1;
   const end = new Date();
   const start = new Date(end.getTime() - windowDays * 24 * 60 * 60 * 1000);
-  // EVDS authenticates the REST API via the `key` URL query parameter.
-  // The documented header auth only works for the SOAP service; on
-  // the REST endpoint an unauthenticated request is silently 302'd to
-  // the HTML UI on `evds3.tcmb.gov.tr`, which used to surface here as
-  // a generic "malformed_response" error and downgrade every TCMB
-  // indicator to the mock fallback.
+  // EVDS authenticates the REST API via the `key` HTTP header.
+  // TCMB migrated away from URL-based key authentication on
+  // 2024-04-05 21:00 TSİ; requests that still pass `&key=…` in the
+  // query string are silently 302'd to `https://evds3.tcmb.gov.tr`
+  // (the HTML portal) regardless of whether the key is valid.
+  // See https://urazakgul.github.io/python-blog/posts/post_9/ which
+  // reproduces TCMB's official announcement, and the PHP sample on
+  // https://karakavuz.com/evds-api-guncellemesi-php-ile-evds-evds-key-kullanimi/.
   const url = new URL(TCMB_BASE);
   url.searchParams.set("series", options.seriesId);
   url.searchParams.set("startDate", formatTcmbDate(start));
   url.searchParams.set("endDate", formatTcmbDate(end));
   url.searchParams.set("type", "json");
   url.searchParams.set("frequency", String(frequency));
-  url.searchParams.set("key", ctx.apiKey);
 
   const payload = (await providerFetch({
     url: url.toString(),
     provider: "TCMB",
     policy: PROVIDER_POLICIES.TCMB,
-    // `redirect: "manual"` surfaces EVDS's auth-failure 302 as a
-    // typed ProviderError instead of silently following the redirect
-    // into the HTML portal.
+    headers: { key: ctx.apiKey },
+    // `redirect: "manual"` surfaces any residual auth-failure 302 as
+    // a typed ProviderError instead of silently following the
+    // redirect into the HTML portal and trying to JSON-parse HTML.
     redirect: "manual",
   })) as TcmbResponse;
 
