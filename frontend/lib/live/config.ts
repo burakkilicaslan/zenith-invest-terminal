@@ -40,15 +40,27 @@ export const PROVIDER_POLICIES: Record<string, ProviderPolicy> = {
   TCMB: { ...DEFAULT_POLICY, timeoutMs: 6_000, cacheTtlMs: 30 * 60 * 1000 },
 };
 
+const LIVE_DATA_ENV_NAMES = ["ZENITH_LIVE_DATA", "ZENITHLIVEDATA"] as const;
+
 /**
  * Live-mode toggle. Keep this a function (not a constant) so tests
- * and server restarts re-read the environment each call.
+ * and server restarts re-read the environment each call. Support both
+ * the documented `ZENITH_LIVE_DATA` key and the legacy alias without
+ * underscores so deployments keep working during migration.
  */
 export function isLiveDataEnabled(): boolean {
-  const flag = process.env.ZENITH_LIVE_DATA;
-  if (!flag) return false;
-  const normalized = flag.toLowerCase();
-  return normalized === "1" || normalized === "true" || normalized === "yes";
+  return readBooleanEnv(LIVE_DATA_ENV_NAMES);
+}
+
+function readBooleanEnv(names: readonly string[]): boolean {
+  for (const name of names) {
+    const flag = process.env[name];
+    if (flag === undefined || flag === null) continue;
+    const normalized = flag.trim().toLowerCase();
+    if (!normalized) continue;
+    return normalized === "1" || normalized === "true" || normalized === "yes";
+  }
+  return false;
 }
 
 export interface ProviderKeyLookup {
