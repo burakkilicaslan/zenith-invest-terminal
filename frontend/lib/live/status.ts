@@ -59,6 +59,19 @@ export class ProviderStatusTracker {
   snapshot(): ProviderStatus[] {
     const list: ProviderStatus[] = [];
     for (const entry of this.entries.values()) {
+      // Skip providers that were registered but never exercised in
+      // this resolution — e.g. a secondary fallback whose primary
+      // succeeded on every indicator. Showing them as `mock` would
+      // falsely imply the provider is unreachable when in reality it
+      // simply was not needed, which is what made Vercel deployments
+      // look like FMP/Polygon were broken whenever FRED resolved.
+      if (
+        entry.successes === 0 &&
+        entry.cachedHits === 0 &&
+        entry.failures === 0
+      ) {
+        continue;
+      }
       const mode: ProviderMode =
         entry.successes > 0
           ? "live"

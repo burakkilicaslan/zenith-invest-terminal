@@ -36,8 +36,12 @@ export type TcmbSeriesId = (typeof TCMB_SERIES)[keyof typeof TCMB_SERIES];
 
 export interface TcmbFetchOptions {
   seriesId: TcmbSeriesId;
-  /** Frequency parameter: 5 = daily, 4 = weekly, 3 = monthly. */
-  frequency?: 3 | 4 | 5;
+  /**
+   * EVDS frequency parameter. Uses TCMB's documented enumeration:
+   * 1 = daily, 2 = business days, 3 = weekly, 4 = semi-monthly,
+   * 5 = monthly, 6 = quarterly, 7 = semi-annual, 8 = annual.
+   */
+  frequency?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
   /** Rolling window (days) to query. */
   windowDays?: number;
 }
@@ -59,21 +63,31 @@ export async function fetchTcmbSeries(
   if (!ctx.apiKey) throw new ProviderMissingKeyError("TCMB");
 
   const windowDays = Math.max(30, options.windowDays ?? 120);
-  const frequency = options.frequency ?? 5;
+  const frequency = options.frequency ?? 1;
   const end = new Date();
   const start = new Date(end.getTime() - windowDays * 24 * 60 * 60 * 1000);
+  // EVDS authenticates the REST API via the `key` URL query parameter.
+  // The documented header auth only works for the SOAP service; on
+  // the REST endpoint an unauthenticated request is silently 302'd to
+  // the HTML UI on `evds3.tcmb.gov.tr`, which used to surface here as
+  // a generic "malformed_response" error and downgrade every TCMB
+  // indicator to the mock fallback.
   const url = new URL(TCMB_BASE);
   url.searchParams.set("series", options.seriesId);
   url.searchParams.set("startDate", formatTcmbDate(start));
   url.searchParams.set("endDate", formatTcmbDate(end));
   url.searchParams.set("type", "json");
   url.searchParams.set("frequency", String(frequency));
+  url.searchParams.set("key", ctx.apiKey);
 
   const payload = (await providerFetch({
     url: url.toString(),
     provider: "TCMB",
     policy: PROVIDER_POLICIES.TCMB,
-    headers: { key: ctx.apiKey },
+    // `redirect: "manual"` surfaces EVDS's auth-failure 302 as a
+    // typed ProviderError instead of silently following the redirect
+    // into the HTML portal.
+    redirect: "manual",
   })) as TcmbResponse;
 
   if (!payload || !Array.isArray(payload.items)) {
