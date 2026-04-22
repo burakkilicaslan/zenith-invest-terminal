@@ -40,27 +40,32 @@ export const PROVIDER_POLICIES: Record<string, ProviderPolicy> = {
   TCMB: { ...DEFAULT_POLICY, timeoutMs: 6_000, cacheTtlMs: 30 * 60 * 1000 },
 };
 
-const LIVE_DATA_ENV_NAMES = ["ZENITH_LIVE_DATA", "ZENITHLIVEDATA"] as const;
-
 /**
  * Live-mode toggle. Keep this a function (not a constant) so tests
  * and server restarts re-read the environment each call. Support both
  * the documented `ZENITH_LIVE_DATA` key and the legacy alias without
  * underscores so deployments keep working during migration.
+ *
+ * Env vars are read via static `process.env.<NAME>` accesses on
+ * purpose: Next.js / webpack only wire up an env var into the
+ * serverless bundle when it sees the literal name in the source
+ * (DefinePlugin). Dynamic `process.env[name]` lookups are not
+ * statically analyzable and silently return `undefined` on Vercel
+ * even when the variable is set in the project settings, which is
+ * what kept the live-data toggle stuck in mock mode.
  */
 export function isLiveDataEnabled(): boolean {
-  return readBooleanEnv(LIVE_DATA_ENV_NAMES);
+  return (
+    parseBooleanFlag(process.env.ZENITH_LIVE_DATA) ||
+    parseBooleanFlag(process.env.ZENITHLIVEDATA)
+  );
 }
 
-function readBooleanEnv(names: readonly string[]): boolean {
-  for (const name of names) {
-    const flag = process.env[name];
-    if (flag === undefined || flag === null) continue;
-    const normalized = flag.trim().toLowerCase();
-    if (!normalized) continue;
-    return normalized === "1" || normalized === "true" || normalized === "yes";
-  }
-  return false;
+function parseBooleanFlag(raw: string | undefined): boolean {
+  if (raw === undefined || raw === null) return false;
+  const normalized = raw.trim().toLowerCase();
+  if (!normalized) return false;
+  return normalized === "1" || normalized === "true" || normalized === "yes";
 }
 
 export interface ProviderKeyLookup {
@@ -72,15 +77,14 @@ export interface ProviderKeyLookup {
 
 export function readProviderKeys(): ProviderKeyLookup {
   return {
-    FRED: envOrNull("FRED_API_KEY"),
-    FMP: envOrNull("FMP_API_KEY"),
-    Polygon: envOrNull("POLYGON_API_KEY"),
-    TCMB: envOrNull("TCMB_EVDS_API_KEY"),
+    FRED: normalizeKey(process.env.FRED_API_KEY),
+    FMP: normalizeKey(process.env.FMP_API_KEY),
+    Polygon: normalizeKey(process.env.POLYGON_API_KEY),
+    TCMB: normalizeKey(process.env.TCMB_EVDS_API_KEY),
   };
 }
 
-function envOrNull(name: string): string | null {
-  const value = process.env[name];
+function normalizeKey(value: string | undefined): string | null {
   if (!value) return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
