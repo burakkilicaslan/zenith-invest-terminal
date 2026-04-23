@@ -631,16 +631,13 @@ const aiSummary: MacroAiSummary = {
   verdict: "cautious",
   headline: "Seçici yatırım ortamı",
   narrative:
-    "Makro resim temkinli-pozitif: ABD tarafında dezenflasyon yavaş ilerlerken getiri eğrisi hâlâ tersine dönmüş durumda ve Fed bilançosu küçülmeye devam ediyor; buna karşın CNN Korku & Hırs Endeksi ılımlı hırs bölgesine (%58) geçti ve investors.com CAN SLIM tavsiyesi %60'a yükseldi — bu bileşim, kalite ve momentum taraflı seçici pozisyonlanmayı destekliyor. Türkiye tarafında CDS primi daralıyor, TCMB rezervleri artıyor ve dezenflasyon sürüyor, ancak politika faizindeki yatay seyir ve yüksek enflasyon reel bazda önlemli kalmayı gerektiriyor.",
+    "Makro resim temkinli-pozitif: ABD tarafında dezenflasyon yavaş ilerlerken getiri eğrisi hâlâ tersine dönmüş durumda ve Fed bilançosu küçülmeye devam ediyor; buna karşın CNN Korku & Hırs Endeksi ılımlı hırs bölgesine (%58) geçti ve investors.com CAN SLIM tavsiyesi %60'a yükseldi — bu bileşim, kalite ve momentum taraflı seçici pozisyonlanmayı destekliyor.",
   highlights: [
     "ABD yatırımcı duyarlılığı (CNN Korku & Hırs 58) ve CAN SLIM tavsiye ağırlığı (%60) 'confirmed uptrend' bölgesinde.",
-    "Türkiye 5Y CDS primi 268 bp ile çok aylık dip; dış tamponlar güçleniyor.",
-    "Türkiye dezenflasyonu sürüyor (TÜFE %38,2, yılbaşından bu yana yaklaşık 17 puan iyileşme).",
   ],
   risks: [
     "ABD 10Y–2Y eğrisi hâlâ negatif (-14 bp), resesyon sinyali canlı.",
     "VIX 17,4'e yükseldi; oynaklık trendi yukarı yönlü.",
-    "TCMB politika faizi %42,5'te sabit, reel faiz katı — erken bir indirim döngüsü TL için risk oluşturur.",
   ],
   confidence: 0.62,
   model: "mock: kural tabanlı sentez",
@@ -652,10 +649,6 @@ const aiSummary: MacroAiSummary = {
     "us-fed-bs",
     "us-fear-greed",
     "us-canslim-exposure",
-    "tr-5y-cds",
-    "tr-tcmb-reserves",
-    "tr-policy-rate",
-    "tr-cpi-yoy",
   ],
   sources: [
     SRC_FRED,
@@ -663,13 +656,10 @@ const aiSummary: MacroAiSummary = {
     SRC_CBOE,
     SRC_CNN,
     SRC_INVESTORS,
-    SRC_TCMB,
-    SRC_TURKSTAT,
-    SRC_IHS,
+    SRC_FED,
     SRC_INTERNAL,
   ],
 };
-
 export const mockMacroDashboard: MacroDashboard = {
   generatedAt: GENERATED_AT,
   source: "mock",
