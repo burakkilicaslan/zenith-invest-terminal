@@ -4,18 +4,23 @@
  * resolved this cycle.
  *
  * The mock `aiSummary` baked into `lib/mocks/macro.ts` is a hand-
- * written narrative that quotes specific numbers (VIX 17,4, policy
- * rate 42,5%, CDS 268 bp, …). When the orchestrator swaps in live
- * values for the same indicators but leaves the summary block
- * untouched, the headline verdict and bullets lie to the reader: the
- * KPI tiles read 4,32 while the summary keeps saying 4,28, and the
- * chip strip says `canlı` while the summary cites stale mock numbers.
+ * written narrative that quotes specific numbers (VIX 17,4, etc.).
+ * When the orchestrator swaps in live values for the same indicators
+ * but leaves the summary block untouched, the headline verdict and
+ * bullets lie to the reader: the KPI tiles read 4,32 while the
+ * summary keeps saying 4,28, and the chip strip says `canlı` while
+ * the summary cites stale mock numbers.
  *
  * This module produces a deterministic, rule-based synthesis over the
  * resolved indicator set. It is intentionally small and explicit —
  * every sentence is derived from a single indicator's value or a
  * direct comparison between two indicators, so reviewers can audit
  * the narrative by reading the code.
+ *
+ * Scope (Epic 2 / issue #32): commentary is **US-only**. Türkiye
+ * indicators still render on the dashboard via the region filter,
+ * but they are deliberately excluded from the AI narrative, verdict,
+ * highlights and risks so the summary reflects a single market.
  */
 
 import type {
@@ -30,7 +35,7 @@ type MaybeIndicator = MacroIndicator | undefined;
 
 interface IndicatorLookup {
   byId(id: string): MaybeIndicator;
-  /** All indicators whose provenance mode is live or cached. */
+  /** Whether any indicator was served from a live or cached provider. */
   anyLive(): boolean;
 }
 
@@ -52,16 +57,12 @@ function buildLookup(regions: MacroRegionSnapshot[]): IndicatorLookup {
   };
 }
 
-/** Turkish-localized numeric formatter with 1 fractional digit. */
+/** Turkish-localized numeric formatter. */
 function formatNumber(value: number, fractionDigits = 1): string {
   return value.toLocaleString("tr-TR", {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   });
-}
-
-function formatPercent(value: number, fractionDigits = 1): string {
-  return `%${formatNumber(value, fractionDigits)}`;
 }
 
 function formatBps(percent: number): string {
@@ -82,7 +83,7 @@ function formatTrillions(value: number): string {
  * the caller-supplied fallback (typically the deterministic mock
  * summary) unchanged. Otherwise, rebuilds `headline`, `verdict`,
  * `narrative`, `highlights`, `risks`, `confidence`, `model`, and
- * `generatedAt` from the resolved indicator values.
+ * `generatedAt` from the resolved **US** indicator values.
  */
 export function deriveAiSummary(
   regions: MacroRegionSnapshot[],
@@ -127,9 +128,7 @@ export function deriveAiSummary(
     } else if (vix.value >= 20) {
       risks.push(`VIX ${vixText} ile temkinli bölgeye geçti.`);
     } else {
-      highlights.push(
-        `VIX ${vixText} ile sakin bölgede; risk iştahı koruyor.`,
-      );
+      highlights.push(`VIX ${vixText} ile sakin bölgede; risk iştahı koruyor.`);
     }
   }
 
@@ -151,7 +150,9 @@ export function deriveAiSummary(
   if (fearGreed) {
     const fgText = formatNumber(fearGreed.value, 0);
     if (fearGreed.value >= 75) {
-      risks.push(`CNN Korku & Hırs endeksi ${fgText} — aşırı hırs, kontra sinyal.`);
+      risks.push(
+        `CNN Korku & Hırs endeksi ${fgText} — aşırı hırs, kontra sinyal.`,
+      );
     } else if (fearGreed.value >= 55) {
       highlights.push(`CNN Korku & Hırs endeksi ${fgText} — hırs bölgesi.`);
     } else if (fearGreed.value <= 25) {
@@ -175,55 +176,6 @@ export function deriveAiSummary(
     }
   }
 
-  // TR policy + inflation ----------------------------------------------
-  const policy = lookup.byId("tr-policy-rate");
-  const cpi = lookup.byId("tr-cpi-yoy");
-  if (policy && cpi) {
-    const realRate = policy.value - cpi.value;
-    const policyText = formatPercent(policy.value, 1);
-    const cpiText = formatPercent(cpi.value, 1);
-    const realText = formatPercent(realRate, 1);
-    if (realRate > 0) {
-      highlights.push(
-        `TCMB politika faizi ${policyText}, TÜFE ${cpiText} — reel faiz ${realText}, dezenflasyon destekleniyor.`,
-      );
-    } else {
-      risks.push(
-        `TCMB politika faizi ${policyText}, TÜFE ${cpiText} — reel faiz ${realText}, TL için risk.`,
-      );
-    }
-  } else if (policy) {
-    risks.push(
-      `TCMB politika faizi ${formatPercent(policy.value, 1)} — reel faiz izlenmeli.`,
-    );
-  } else if (cpi) {
-    risks.push(`Türkiye TÜFE ${formatPercent(cpi.value, 1)} — yüksek enflasyon sürüyor.`);
-  }
-
-  // TR reserves --------------------------------------------------------
-  const reserves = lookup.byId("tr-tcmb-reserves");
-  if (reserves) {
-    const reservesText = `${formatNumber(reserves.value, 1)} Mr$`;
-    if (reserves.trend === "up") {
-      highlights.push(
-        `TCMB rezervleri ${reservesText} seviyesinde artış eğiliminde; dış tamponlar güçleniyor.`,
-      );
-    } else if (reserves.trend === "down") {
-      risks.push(`TCMB rezervleri ${reservesText} seviyesinde geriliyor.`);
-    }
-  }
-
-  // TR CDS -------------------------------------------------------------
-  const cds = lookup.byId("tr-5y-cds");
-  if (cds) {
-    const cdsText = `${formatNumber(cds.value, 0)} bp`;
-    if (cds.trend === "down") {
-      highlights.push(`Türkiye 5Y CDS ${cdsText} ile daralıyor; risk primi iyileşiyor.`);
-    } else if (cds.trend === "up") {
-      risks.push(`Türkiye 5Y CDS ${cdsText} ile genişliyor; risk primi yükseliyor.`);
-    }
-  }
-
   // ---------- Verdict + narrative ----------
   const verdict = resolveVerdict(highlights.length, risks.length);
   const headline = HEADLINE[verdict];
@@ -237,8 +189,11 @@ export function deriveAiSummary(
     totalSignals === 0
       ? 0
       : Math.abs(highlights.length - risks.length) / totalSignals;
-  const coverage = Math.min(1, totalSignals / 6);
-  const confidence = Math.max(0.4, Math.min(0.75, 0.45 + 0.2 * coverage + 0.1 * dominance));
+  const coverage = Math.min(1, totalSignals / 5);
+  const confidence = Math.max(
+    0.4,
+    Math.min(0.75, 0.45 + 0.2 * coverage + 0.1 * dominance),
+  );
 
   return {
     ...fallback,
@@ -249,14 +204,7 @@ export function deriveAiSummary(
     highlights,
     risks,
     confidence: Number(confidence.toFixed(2)),
-    model:
-      overallMode === "live"
-        ? "canlı: kural tabanlı sentez"
-        : overallMode === "mixed"
-          ? "karma: kural tabanlı sentez"
-          : overallMode === "cached"
-            ? "önbellek: kural tabanlı sentez"
-            : fallback.model,
+    model: MODEL_LABEL[overallMode] ?? fallback.model,
   };
 }
 
@@ -265,6 +213,23 @@ const HEADLINE: Record<InvestabilityVerdict, string> = {
   cautious: "Seçici yatırım ortamı",
   unfavorable: "Yatırım ortamı baskı altında",
   mixed: "Karışık makro sinyalleri",
+};
+
+const MODEL_LABEL: Record<ProviderMode | "mixed", string> = {
+  live: "canlı: kural tabanlı sentez (ABD)",
+  mixed: "karma: kural tabanlı sentez (ABD)",
+  cached: "önbellek: kural tabanlı sentez (ABD)",
+  mock: "mock: kural tabanlı sentez (ABD)",
+};
+
+const NARRATIVE_PREAMBLE: Record<InvestabilityVerdict, string> = {
+  favorable:
+    "ABD canlı göstergeleri destekleyici bir makro ortama işaret ediyor.",
+  cautious:
+    "ABD canlı göstergeleri dengeli bir tablo ortaya koyuyor; seçici pozisyonlanma uygun.",
+  unfavorable:
+    "ABD canlı göstergeleri baskıcı bir makro ortama işaret ediyor; savunmacı pozisyon ön planda.",
+  mixed: "ABD canlı göstergeleri karışık sinyaller üretiyor.",
 };
 
 function resolveVerdict(
@@ -283,44 +248,19 @@ function buildNarrative(
   verdict: InvestabilityVerdict,
   lookup: IndicatorLookup,
 ): string {
-  const parts: string[] = [];
+  const parts: string[] = [NARRATIVE_PREAMBLE[verdict]];
 
   const spread = lookup.byId("us-10y-2y");
   const vix = lookup.byId("us-vix");
   const fedBs = lookup.byId("us-fed-bs");
   if (spread && vix && fedBs) {
     parts.push(
-      `ABD tarafında 10Y–2Y eğrisi ${formatBps(spread.value)}, VIX ${formatNumber(
+      `10Y–2Y eğrisi ${formatBps(spread.value)}, VIX ${formatNumber(
         vix.value,
         1,
       )} ve Fed bilançosu ${formatTrillions(fedBs.value)} seviyelerinde.`,
     );
   }
 
-  const policy = lookup.byId("tr-policy-rate");
-  const cpi = lookup.byId("tr-cpi-yoy");
-  const reserves = lookup.byId("tr-tcmb-reserves");
-  if (policy && cpi) {
-    const bits = [
-      `politika faizi ${formatPercent(policy.value, 1)}`,
-      `TÜFE ${formatPercent(cpi.value, 1)}`,
-    ];
-    if (reserves) {
-      bits.push(`TCMB rezervleri ${formatNumber(reserves.value, 1)} Mr$`);
-    }
-    parts.push(`Türkiye tarafında ${bits.join(", ")}.`);
-  }
-
-  const preamble = {
-    favorable:
-      "Canlı göstergeler destekleyici bir makro ortama işaret ediyor.",
-    cautious:
-      "Canlı göstergeler dengeli bir tablo ortaya koyuyor; seçici pozisyonlanma uygun.",
-    unfavorable:
-      "Canlı göstergeler baskıcı bir makro ortama işaret ediyor; savunmacı pozisyon ön planda.",
-    mixed:
-      "Canlı gösterge kümesi karışık sinyaller üretiyor.",
-  }[verdict];
-
-  return [preamble, ...parts].join(" ");
+  return parts.join(" ");
 }
