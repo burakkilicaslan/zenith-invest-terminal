@@ -175,55 +175,6 @@ export function deriveAiSummary(
     }
   }
 
-  // TR policy + inflation ----------------------------------------------
-  const policy = lookup.byId("tr-policy-rate");
-  const cpi = lookup.byId("tr-cpi-yoy");
-  if (policy && cpi) {
-    const realRate = policy.value - cpi.value;
-    const policyText = formatPercent(policy.value, 1);
-    const cpiText = formatPercent(cpi.value, 1);
-    const realText = formatPercent(realRate, 1);
-    if (realRate > 0) {
-      highlights.push(
-        `TCMB politika faizi ${policyText}, TÜFE ${cpiText} — reel faiz ${realText}, dezenflasyon destekleniyor.`,
-      );
-    } else {
-      risks.push(
-        `TCMB politika faizi ${policyText}, TÜFE ${cpiText} — reel faiz ${realText}, TL için risk.`,
-      );
-    }
-  } else if (policy) {
-    risks.push(
-      `TCMB politika faizi ${formatPercent(policy.value, 1)} — reel faiz izlenmeli.`,
-    );
-  } else if (cpi) {
-    risks.push(`Türkiye TÜFE ${formatPercent(cpi.value, 1)} — yüksek enflasyon sürüyor.`);
-  }
-
-  // TR reserves --------------------------------------------------------
-  const reserves = lookup.byId("tr-tcmb-reserves");
-  if (reserves) {
-    const reservesText = `${formatNumber(reserves.value, 1)} Mr$`;
-    if (reserves.trend === "up") {
-      highlights.push(
-        `TCMB rezervleri ${reservesText} seviyesinde artış eğiliminde; dış tamponlar güçleniyor.`,
-      );
-    } else if (reserves.trend === "down") {
-      risks.push(`TCMB rezervleri ${reservesText} seviyesinde geriliyor.`);
-    }
-  }
-
-  // TR CDS -------------------------------------------------------------
-  const cds = lookup.byId("tr-5y-cds");
-  if (cds) {
-    const cdsText = `${formatNumber(cds.value, 0)} bp`;
-    if (cds.trend === "down") {
-      highlights.push(`Türkiye 5Y CDS ${cdsText} ile daralıyor; risk primi iyileşiyor.`);
-    } else if (cds.trend === "up") {
-      risks.push(`Türkiye 5Y CDS ${cdsText} ile genişliyor; risk primi yükseliyor.`);
-    }
-  }
-
   // ---------- Verdict + narrative ----------
   const verdict = resolveVerdict(highlights.length, risks.length);
   const headline = HEADLINE[verdict];
@@ -297,19 +248,7 @@ function buildNarrative(
     );
   }
 
-  const policy = lookup.byId("tr-policy-rate");
-  const cpi = lookup.byId("tr-cpi-yoy");
-  const reserves = lookup.byId("tr-tcmb-reserves");
-  if (policy && cpi) {
-    const bits = [
-      `politika faizi ${formatPercent(policy.value, 1)}`,
-      `TÜFE ${formatPercent(cpi.value, 1)}`,
-    ];
-    if (reserves) {
-      bits.push(`TCMB rezervleri ${formatNumber(reserves.value, 1)} Mr$`);
-    }
-    parts.push(`Türkiye tarafında ${bits.join(", ")}.`);
-  }
+
 
   const preamble = {
     favorable:
