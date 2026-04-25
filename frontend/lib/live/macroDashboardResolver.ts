@@ -17,6 +17,7 @@ import { cacheGet, cacheSet } from "./cache";
 import { summarizeError } from "./errors";
 import { ProviderStatusTracker } from "./status";
 import { deriveAiSummary } from "./aiSummary";
+import type { LiveObservation } from "./providers/common";
 import { LIVE_BINDINGS, PROVIDER_LABELS, type LiveBinding } from "./macroDashboardBindings";
 export interface GetMacroDashboardOptions {
   state?: "loading" | "empty" | "populated" | "error";
