@@ -8,6 +8,7 @@ import { fetchFearGreedIndex } from "./providers/fearGreed";
 import type { LiveObservation } from "./providers/common";
 
 export type LiveFetcher = (apiKey?: string | null) => Promise<LiveObservation>;
+
 export interface LiveBinding {
   primary: string;
   primaryCacheKey: string;
@@ -23,10 +24,12 @@ export interface LiveBinding {
   };
   transform?: (obs: LiveObservation) => LiveObservation;
 }
+
 export const LIVE_BINDINGS: Record<string, LiveBinding> = {
   "us-10y": {
     primary: "FRED",
     primaryCacheKey: "FRED:DGS10",
+    source: { code: "FRED", label: "Federal Reserve Economic Data", url: "https://fred.stlouisfed.org" },
     fetchPrimary: (apiKey) =>
       fetchFredSeries({ apiKey: apiKey ?? "" }, { seriesId: FRED_SERIES.US_10Y }),
     secondary: {
@@ -40,6 +43,7 @@ export const LIVE_BINDINGS: Record<string, LiveBinding> = {
   "us-2y": {
     primary: "FRED",
     primaryCacheKey: "FRED:DGS2",
+    source: { code: "FRED", label: "Federal Reserve Economic Data", url: "https://fred.stlouisfed.org" },
     fetchPrimary: (apiKey) =>
       fetchFredSeries({ apiKey: apiKey ?? "" }, { seriesId: FRED_SERIES.US_2Y }),
     secondary: {
@@ -53,6 +57,7 @@ export const LIVE_BINDINGS: Record<string, LiveBinding> = {
   "us-10y-2y": {
     primary: "FRED",
     primaryCacheKey: "FRED:T10Y2Y",
+    source: { code: "FRED", label: "Federal Reserve Economic Data", url: "https://fred.stlouisfed.org" },
     fetchPrimary: (apiKey) =>
       fetchFredSeries(
         { apiKey: apiKey ?? "" },
@@ -62,6 +67,7 @@ export const LIVE_BINDINGS: Record<string, LiveBinding> = {
   "us-vix": {
     primary: "FRED",
     primaryCacheKey: "FRED:VIXCLS",
+    source: { code: "FRED", label: "Federal Reserve Economic Data", url: "https://fred.stlouisfed.org" },
     fetchPrimary: (apiKey) =>
       fetchFredSeries({ apiKey: apiKey ?? "" }, { seriesId: FRED_SERIES.US_VIX }),
     secondary: {
@@ -110,12 +116,14 @@ export const LIVE_BINDINGS: Record<string, LiveBinding> = {
   "tr-policy-rate": {
     primary: "TCMB",
     primaryCacheKey: `TCMB:${TCMB_SERIES.POLICY_RATE}`,
+    source: { code: "TCMB", label: "Türkiye Cumhuriyet Merkez Bankası (EVDS)", url: "https://evds2.tcmb.gov.tr" },
     fetchPrimary: (apiKey) =>
       fetchTcmbSeries({ apiKey: apiKey ?? "" }, { seriesId: TCMB_SERIES.POLICY_RATE }),
   },
   "tr-tcmb-reserves": {
     primary: "TCMB",
     primaryCacheKey: `TCMB:${TCMB_SERIES.TCMB_RESERVES}`,
+    source: { code: "TCMB", label: "Türkiye Cumhuriyet Merkez Bankası (EVDS)", url: "https://evds2.tcmb.gov.tr" },
     fetchPrimary: (apiKey) =>
       fetchTcmbSeries(
         { apiKey: apiKey ?? "" },
@@ -125,6 +133,7 @@ export const LIVE_BINDINGS: Record<string, LiveBinding> = {
   "tr-cpi-yoy": {
     primary: "TCMB",
     primaryCacheKey: `TCMB:${TCMB_SERIES.CPI_YOY}`,
+    source: { code: "TCMB", label: "Türkiye Cumhuriyet Merkez Bankası (EVDS)", url: "https://evds2.tcmb.gov.tr" },
     fetchPrimary: (apiKey) =>
       fetchTcmbSeries(
         { apiKey: apiKey ?? "" },
@@ -132,6 +141,7 @@ export const LIVE_BINDINGS: Record<string, LiveBinding> = {
       ),
   },
 };
+
 export const PROVIDER_LABELS: Record<string, string> = {
   FRED: "Federal Reserve Economic Data",
   FMP: "Financial Modeling Prep",
@@ -140,6 +150,7 @@ export const PROVIDER_LABELS: Record<string, string> = {
   Alternative: "Alternative.me Fear & Greed Index",
   Yahoo: "Zenith CAN SLIM model (Yahoo Finance)",
 };
+
 function scaleObservation(obs: LiveObservation, factor: number): LiveObservation {
   return {
     ...obs,
@@ -151,9 +162,10 @@ function scaleObservation(obs: LiveObservation, factor: number): LiveObservation
     history: obs.history.map((point) => ({
       ...point,
       value: point.value * factor,
-      change: point.change !== null && point.change !== undefined
-        ? point.change * factor
-        : point.change ?? null,
+      change:
+        point.change !== null && point.change !== undefined
+          ? point.change * factor
+          : point.change ?? null,
     })),
   };
 }
