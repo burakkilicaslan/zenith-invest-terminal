@@ -85,6 +85,7 @@ export interface ProviderKeyLookup {
   FMP: string | null;
   Polygon: string | null;
   TCMB: string | null;
+  [key: string]: string | null;
 }
 
 export function readProviderKeys(): ProviderKeyLookup {
