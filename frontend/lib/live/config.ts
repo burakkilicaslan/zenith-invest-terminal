@@ -38,6 +38,18 @@ export const PROVIDER_POLICIES: Record<string, ProviderPolicy> = {
   FMP: { ...DEFAULT_POLICY },
   Polygon: { ...DEFAULT_POLICY, timeoutMs: 3_000 },
   TCMB: { ...DEFAULT_POLICY, timeoutMs: 6_000, cacheTtlMs: 30 * 60 * 1000 },
+  Alternative: {
+    ...DEFAULT_POLICY,
+    timeoutMs: 3_000,
+    cacheTtlMs: 24 * 60 * 60 * 1000,
+    staleTtlMs: 48 * 60 * 60 * 1000,
+  },
+  Yahoo: {
+    ...DEFAULT_POLICY,
+    timeoutMs: 3_000,
+    cacheTtlMs: 24 * 60 * 60 * 1000,
+    staleTtlMs: 48 * 60 * 60 * 1000,
+  },
 };
 
 /**
@@ -89,3 +101,4 @@ function normalizeKey(value: string | undefined): string | null {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
 }
+}}
