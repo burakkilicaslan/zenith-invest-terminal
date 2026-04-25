@@ -15,7 +15,7 @@
 export interface ProviderPolicy {
   /** HTTP request timeout in milliseconds. */
   timeoutMs: number;
-  /** Maximum retry attempts *on top of* the initial request. */
+  /** Maximum retry attempts on top of the initial request. */
   maxRetries: number;
   /** Initial backoff delay, doubled per retry. */
   baseRetryDelayMs: number;
@@ -55,16 +55,16 @@ export const PROVIDER_POLICIES: Record<string, ProviderPolicy> = {
 /**
  * Live-mode toggle. Keep this a function (not a constant) so tests
  * and server restarts re-read the environment each call. Support both
- * the documented `ZENITH_LIVE_DATA` key and the legacy alias without
+ * the documented ZENITH_LIVE_DATA key and the legacy alias without
  * underscores so deployments keep working during migration.
  *
- * Env vars are read via static `process.env.<NAME>` accesses on
- * purpose: Next.js / webpack only wire up an env var into the
- * serverless bundle when it sees the literal name in the source
- * (DefinePlugin). Dynamic `process.env[name]` lookups are not
- * statically analyzable and silently return `undefined` on Vercel
- * even when the variable is set in the project settings, which is
- * what kept the live-data toggle stuck in mock mode.
+ * Env vars are read via static process.env.NAME accesses on purpose:
+ * Next.js / webpack only wire up an env var into the serverless
+ * bundle when it sees the literal name in the source. Dynamic
+ * process.env[name] lookups are not statically analyzable and silently
+ * return undefined on Vercel even when the variable is set in the
+ * project settings, which is what kept the live-data toggle stuck in
+ * mock mode.
  */
 export function isLiveDataEnabled(): boolean {
   return (
@@ -101,4 +101,3 @@ function normalizeKey(value: string | undefined): string | null {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
 }
-}}
